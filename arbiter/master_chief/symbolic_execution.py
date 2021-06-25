@@ -12,12 +12,12 @@ from ..target import *
 from archinfo import Endness
 from .sa_base import StaticAnalysis
 from ..utils import Utils, FatalError
-from .sa_advanced import StaticAnalysisAdvanced
+from .sa_advanced import SA_Adv
 
 logger = logging.getLogger("SE_logger")
 
 
-class SymbolicExecution(StaticAnalysis, DerefHook):
+class SymExec(StaticAnalysis, DerefHook):
     '''
     A class which performs symbolic execution on the target function.
     If the advanced static analysis was able to detect a source for the input,
@@ -26,7 +26,7 @@ class SymbolicExecution(StaticAnalysis, DerefHook):
 
     def __init__(self, sa, constrain, require_dd=None, verbose=False):
         '''
-        :param sa           :The StaticAnalysisAdvanced object
+        :param sa           :The SA_Adv object
         :param constrain    :A function that takes in a state, the expression
                             representing the argument and a list of expressions
                             that influence the final expression.
@@ -39,7 +39,7 @@ class SymbolicExecution(StaticAnalysis, DerefHook):
         '''
         self.sa = sa
         self.constrain = constrain
-        super(SymbolicExecution, self).__init__(sa.project)
+        super(SymExec, self).__init__(sa.project)
         self._targets = sa.targets
         self.sinks = sa.sinks
         self._cfg = sa.cfg

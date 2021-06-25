@@ -11,7 +11,7 @@ from .sa_base import StaticAnalysis
 logger = logging.getLogger("SA_recon")
 
 
-class StaticAnalysisRecon(StaticAnalysis):
+class SA_Recon(StaticAnalysis):
     '''
     A class which performs the basic static analysis
     Analyse the function at func_addr and search for calls to sinks
@@ -23,7 +23,7 @@ class StaticAnalysisRecon(StaticAnalysis):
         :param maps:        A dictionary that maps the functions to the
                             argument description as provided in utils.py
         '''
-        super(StaticAnalysisRecon, self).__init__(p)
+        super(SA_Recon, self).__init__(p)
 
         self.map = {}
         self._statistics = {}

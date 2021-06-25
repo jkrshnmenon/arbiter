@@ -12,7 +12,7 @@ from .sa_base import StaticAnalysis
 logger = logging.getLogger('SA_advanced')
 
 
-class StaticAnalysisAdvanced(StaticAnalysis):
+class SA_Adv(StaticAnalysis):
     def __init__(self, sa_recon, checkpoint={}, require_dd=True, call_depth=None, verbose=False):
         '''
         :param sa_recon:        The StaticAnalysisRecon object
@@ -21,7 +21,7 @@ class StaticAnalysisAdvanced(StaticAnalysis):
                                 [0 for return value and 1-n for arguments]
         '''
         self.sa_recon = sa_recon
-        super(StaticAnalysisAdvanced, self).__init__(sa_recon.project)
+        super(SA_Adv, self).__init__(sa_recon.project)
 
         self._statistics = {}
 

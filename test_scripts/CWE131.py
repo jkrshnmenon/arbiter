@@ -35,11 +35,11 @@ def do_stuff(fname):
             'calloc': ['n'],
             'realloc': ['c', 'n']}
 
-    sa = StaticAnalysisRecon(project, list(maps.keys()), maps, verbose=True)
+    sa = SA_Recon(project, list(maps.keys()), maps, verbose=True)
     sa.analyze()
-    sb = StaticAnalysisAdvanced(sa, call_depth=1, require_dd=True, verbose=True)
+    sb = SA_Adv(sa, call_depth=1, require_dd=True, verbose=True)
     sb.analyze_all()
-    se = SymbolicExecution(sb, constrain, require_dd=True, verbose=True)
+    se = SymExec(sb, constrain, require_dd=True, verbose=True)
     se.run_all()
 
     se.postprocessing(3)

@@ -50,11 +50,11 @@ def do_stuff(fname):
             }
     sink = list(maps.keys())
 
-    sa = StaticAnalysisRecon(project, sink, maps, verbose=True)
+    sa = SA_Recon(project, sink, maps, verbose=True)
     sa.analyze()
-    sb = StaticAnalysisAdvanced(sa, require_dd=True, call_depth=1, verbose=True)
+    sb = SA_Adv(sa, require_dd=True, call_depth=1, verbose=True)
     sb.analyze_all()
-    se = SymbolicExecution(sb, constrain, require_dd=True, verbose=True)
+    se = SymExec(sb, constrain, require_dd=True, verbose=True)
     se.run_all()
 
     se.postprocessing(3)

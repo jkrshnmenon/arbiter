@@ -44,14 +44,14 @@ def do_stuff(fname):
     bin_file = os.path.join(bin_dir, fname)
     project = angr.Project(bin_file, load_options={'auto_load_libs': False})
 
-    sa = StaticAnalysisRecon(project, sinks, maps)
+    sa = SA_Recon(project, sinks, maps)
     sa.analyze()
     # sa.analyze_one(0x805d8ba)
 
-    sb = StaticAnalysisAdvanced(sa, checkpoints, require_dd=False, call_depth=1)
+    sb = SA_Adv(sa, checkpoints, require_dd=False, call_depth=1)
     sb.analyze_all()
 
-    se = SymbolicExecution(sb, constrain, require_dd=False)
+    se = SymExec(sb, constrain, require_dd=False)
     se.run_all()
 
     se.postprocessing(2)

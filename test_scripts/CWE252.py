@@ -67,13 +67,13 @@ def do_stuff(fname, sinks, maps, checkpoints):
     bin_file = fname
     project = angr.Project(bin_file, load_options={'auto_load_libs': False})
 
-    sa = StaticAnalysisRecon(project, sinks, maps, verbose=True)
+    sa = SA_Recon(project, sinks, maps, verbose=True)
     sa.analyze()
 
-    sb = StaticAnalysisAdvanced(sa, checkpoints, require_dd=False, call_depth=1, verbose=True)
+    sb = SA_Adv(sa, checkpoints, require_dd=False, call_depth=1, verbose=True)
     sb.analyze_all()
 
-    se = SymbolicExecution(sb, constrain, verbose=True)
+    se = SymExec(sb, constrain, verbose=True)
     se.run_all()
 
     se.postprocessing(3)
