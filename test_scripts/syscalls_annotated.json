@@ -1,0 +1,314 @@
+{
+  "setuid": {
+    "args": [
+      {
+        "values": {}, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "chdir": {
+    "args": [
+      {
+        "values": {}, 
+        "type": "pointer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "setpgid": {
+    "args": [
+      {
+        "values": {}, 
+        "type": "integer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "mmap": {
+    "args": [
+      {
+        "values": {
+          "NULL": "the kernel chooses address"
+        }, 
+        "type": "pointer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        ">0": "success", 
+        "-1": "error"
+      }, 
+      "type": "pointer"
+    }
+  }, 
+  "setreuid": {
+    "args": [
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }, 
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "chown": {
+    "args": [
+      {
+        "values": {}, 
+        "type": "pointer"
+      }, 
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }, 
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "access": {
+    "args": [
+      {
+        "values": {}, 
+        "type": "pointer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "setsid": {
+    "args": [
+      {
+        "values": {}, 
+        "type": "void"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "-1": "error", 
+        ">=0": "success"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "chroot": {
+    "args": [
+      {
+        "values": {}, 
+        "type": "pointer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "setregid": {
+    "args": [
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }, 
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "setgid": {
+    "args": [
+      {
+        "values": {}, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "prctl": {
+    "args": [
+      {
+        "values": {}, 
+        "type": "integer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }, 
+      {
+        "values": {}, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "-1": "error", 
+        ">=0": "success"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "setresgid": {
+    "args": [
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }, 
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }, 
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }, 
+  "setresuid": {
+    "args": [
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }, 
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }, 
+      {
+        "values": {
+          "-1": "ID is not changed"
+        }, 
+        "type": "integer"
+      }
+    ], 
+    "ret": {
+      "values": {
+        "0": "success", 
+        "-1": "error"
+      }, 
+      "type": "integer"
+    }
+  }
+}
