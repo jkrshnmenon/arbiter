@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 setup(
    name='arbiter',
-   python_requires=">3.8",
+   python_requires=">=3.8",
    version='0.0.1',
    packages=find_packages(),
    description='A static+dynamic vulnerability detection tool',
