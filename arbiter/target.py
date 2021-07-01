@@ -405,12 +405,12 @@ class StrlenHook(DefaultHook):
             inp = self.state.regs.rdi
         sym_vars = self.state.globals['sym_vars']
         expr = claripy.BVS('len_retval', self.state.project.arch.bits)
+        self.state.solver.add(expr < 2 ** int(self.state.project.arch.bits/2))
 
         if self._find_child_in_list(inp, sym_vars) is False:
             return expr
 
         self.state.solver.add(expr != 0)
-        self.state.solver.add(expr < 2 ** int(self.state.project.arch.bits/2))
         self.state.globals['sym_vars'].append(expr)
         return expr
 
