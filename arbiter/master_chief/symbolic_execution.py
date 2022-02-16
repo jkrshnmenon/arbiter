@@ -14,7 +14,7 @@ from .sa_base import StaticAnalysis
 from ..utils import Utils, FatalError
 from .sa_advanced import SA_Adv
 
-logger = logging.getLogger("SE_logger")
+logger = logging.getLogger(name=__name__)
 
 
 class SymExec(StaticAnalysis, DerefHook):
@@ -23,7 +23,6 @@ class SymExec(StaticAnalysis, DerefHook):
     If the advanced static analysis was able to detect a source for the input,
     use that to create a state.
     '''
-
     def __init__(self, sa, constrain, require_dd=None, verbose=False):
         '''
         :param sa           :The SA_Adv object
@@ -59,6 +58,9 @@ class SymExec(StaticAnalysis, DerefHook):
         signal.signal(signal.SIGALRM, self._signal_handler)
 
         self.reports = {}
+
+    def __str__(self):
+        return f"SymExec(project={self._project}, targets={len(self.targets)}, reports={len(self.reports)})"
 
     @staticmethod
     def mem_derefs(state):
@@ -677,17 +679,30 @@ class SymExec(StaticAnalysis, DerefHook):
             logger.debug("Got an exception")
             logger.error(e)
 
-        return len(sat_states) > 0
+        if len(sat_states) == 0:
+            return None
+
+        output = {'function': first_target.addr, 'bbl': report.site.bbl,
+                  'bbl_history': list(sat_states[0].state.history.bbl_addrs),
+                  'callstack': [x.current_function_address for x in sat_states[0].callstack]
+                  }
+        if report.site.callee == 'EOF':
+            output['bbl'] = self._first_bbl(report.state)
+        return output
 
     def verify(self, report, blocks):
+        output = None
         for x in blocks:
             try:
-                if self.verify_one(report, x, blocks[x]) is True:
+                output = self.verify_one(report, x, blocks[x])
+                if output is not None:
                     break
             except AssertionError as e:
                 self._timeout_received = True
                 logger.error(e)
                 continue
+
+        return output
 
     def postprocessing(self, pred_level=1):
         '''
@@ -697,6 +712,7 @@ class SymExec(StaticAnalysis, DerefHook):
         '''
         logger.info("Starting postprocessing")
         self._stats_filename = 'FP.json'
+        TP = []
 
         self._statistics = {}
         self._statistics['satisfied_states'] = len(self.reports)
@@ -744,13 +760,17 @@ class SymExec(StaticAnalysis, DerefHook):
 
             self._statistics[func_addr]['callers'] = len(blocks)
             for report in func_sink_map[func_addr]:
-                self.verify(report, blocks)
+                is_tp = self.verify(report, blocks)
+                if is_tp is not None:
+                    TP.append(is_tp)
             logger.info("Done with function @ %#x" % func_addr)
 
         logger.info("Finished postprocessing")
 
         if self._verbose is True:
             self._dump_stats()
+
+        return TP
 
 
 

@@ -8,7 +8,7 @@ from ..target import SA1_Target
 from ..utils import FatalError
 from .sa_base import StaticAnalysis
 
-logger = logging.getLogger("SA_recon")
+logger = logging.getLogger(name=__name__)
 
 
 class SA_Recon(StaticAnalysis):
@@ -63,6 +63,9 @@ class SA_Recon(StaticAnalysis):
         self._statistics['recovered_functions'] = len(self._cfg.functions.items())
         self._statistics['identified_functions'] = 0
     
+    def __str__(self):
+        return f"SA_Recon(project={self.project}, sinks={self.sinks}, maps={self.map}, targets={len(self.targets)})"
+
     def _dump_stats(self):
         '''
         Print some numbers about this step of the analysis

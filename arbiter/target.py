@@ -12,6 +12,9 @@ class Sink():
                         'args': arglist}
         self._flag = False
 
+    def __str__(self):
+        return f"Sink(BBL={hex(self.bbl)}, Callee={self.callee}, args={self.args}"
+
     @property
     def fmt(self):
         return self._target['args'].index('fmt') + 1
@@ -89,6 +92,9 @@ class SA1_Target():
         self._func = func
         self._nodes = {}
 
+    def __str__(self):
+        return f"SA1_Target(func={hex(self.addr)}, nodes={self.node_count})"
+
     def add_node(self, site, size, cfg, arglist):
         if 'r' in arglist:
             self._nodes[site] = Sink(site, size, "EOF", arglist)
@@ -141,6 +147,9 @@ class SA2_Target():
         self._bs = None
         self._nodes = {}
         self._source = None
+
+    def __str__(self):
+        return f"SA2_Target(func={hex(self.addr)}, source={self.source}, nodes={self.node_count})"
 
     def str_ref(self, str_addr):
         for addr, val in self._func.string_references(vex_only=True):
@@ -239,6 +248,9 @@ class Report:
     def __init__(self, state, site):
         self._state = state
         self._site = site
+
+    def __str__(self):
+        return f"Report(state={self.state}, site={hex(self.sink)})"
 
     @property
     def state(self):

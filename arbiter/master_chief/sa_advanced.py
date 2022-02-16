@@ -1,5 +1,4 @@
 import os
-import re
 import json
 import time
 import angr
@@ -9,7 +8,7 @@ from ..target import SA2_Target
 from angr.sim_options import refs
 from .sa_base import StaticAnalysis
 
-logger = logging.getLogger('SA_advanced')
+logger = logging.getLogger(name=__name__)
 
 
 class SA_Adv(StaticAnalysis):
@@ -46,6 +45,9 @@ class SA_Adv(StaticAnalysis):
             raise FatalError("No targets for SA advanced")
 
         self._final_targets = []
+
+    def __str__(self):
+        return f"SA_Adv(project={self._project}, checkpoint={self._checkpoint}, targets={len(self.targets)})"
 
     @property
     def sinks(self):
