@@ -24,7 +24,7 @@ help:
 
 
 build:
-	test_scripts/update_image.sh $(TAG)
+	# test_scripts/update_image.sh $(TAG)
 	docker build -t $(NS)/$(IMAGE_NAME):$(TAG) .
 
 release: 

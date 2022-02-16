@@ -1,19 +1,18 @@
-from ubuntu:18.04
+FROM ubuntu:18.04
 
-run dpkg --add-architecture i386
-run apt update && apt -y upgrade
-run apt install -y python3-dev python3-pip build-essential
-run pip3 install angr python-json-logger
-run useradd -s /bin/bash -m test
-user test
-copy arbiter /home/test/arbiter
-copy test_scripts /home/test/test_scripts
-copy setup.py /home/test/setup.py
-copy README.md /home/test/
-run mkdir /home/test/logs
-run mkdir /home/test/bins
-user root
-run python3 /home/test/setup.py install
-user test
-workdir /home/test
-cmd ["/bin/bash"]
+RUN dpkg --add-architecture i386
+RUN apt update && apt -y upgrade
+RUN apt install -y python3-dev python3-pip build-essential
+RUN useradd -s /bin/bash -m test
+COPY arbiter /home/test/arbiter
+COPY test_scripts /home/test/test_scripts
+COPY setup.py /home/test/setup.py
+COPY README.md /home/test/
+RUN chown -R test:test /home/test/
+USER test
+RUN pip3 install --user angr python-json-logger
+RUN mkdir /home/test/logs
+RUN mkdir /home/test/bins
+WORKDIR /home/test
+RUN python3 /home/test/setup.py install --user
+CMD ["/bin/bash"]
