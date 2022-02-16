@@ -42,7 +42,7 @@ def do_stuff(fname):
     se = SymExec(sb, constrain, require_dd=True, verbose=True)
     se.run_all()
 
-    se.postprocessing(3)
+    return se.postprocessing(3)
 
 
 if __name__ == '__main__':
