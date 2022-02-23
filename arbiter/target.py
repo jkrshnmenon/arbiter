@@ -183,11 +183,12 @@ class SA2_Target():
 
     def expr_from_state(self, project, state, arg_num):
         cca = project.analyses.CallingConvention(self._func)
-        if cca.cc is None or cca.cc.args is None:
+        args = cca.cc.arg_locs(cca.prototype)
+        if cca.cc is None or args is None:
             return None
         if arg_num == 0:
             return cca.cc.get_return_val(state)
-        elif len(cca.cc.args) >= arg_num:
+        elif len(args) >= arg_num:
             return cca.cc.arg(state, arg_num - 1)
 
     def checkpoint_is_ret(self, name):
