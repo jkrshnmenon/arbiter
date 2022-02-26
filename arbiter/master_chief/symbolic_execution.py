@@ -683,7 +683,7 @@ class SymExec(StaticAnalysis, DerefHook):
             return None
 
         output = {'function': first_target.addr, 'bbl': report.site.bbl,
-                  'bbl_history': list(sat_states[0].state.history.bbl_addrs),
+                  'bbl_history': list(sat_states[0].history.bbl_addrs),
                   'callstack': [x.current_function_address for x in sat_states[0].callstack]
                   }
         if report.site.callee == 'EOF':
