@@ -394,7 +394,7 @@ class FirstArgHook(angr.SimProcedure):
         self.state.globals['sym_vars'].append(expr)
         return arg
 
-class CheckpointHook(angr.SimProcedure):
+class CheckpointHook(DefaultHook):
     def run(self, **kwargs):
         assert 'arg_num' in kwargs['kwargs']
         arg_num = kwargs['kwargs']['arg_num']

@@ -481,9 +481,9 @@ class SA_Adv(StaticAnalysis):
 
             if len(all_matches) == 0:
                 logger.warn("No checkpoint present in function")
-                # if self._require_dd is True:
-                #     raise angr.AngrCFGError()
-                #     return
+                if self._require_dd is True:
+                    raise angr.AngrCFGError()
+                    return
         
         self._statistics[sa1.addr]['constants'] = 0
 
