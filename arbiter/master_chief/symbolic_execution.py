@@ -169,7 +169,7 @@ class SymExec(StaticAnalysis, DerefHook):
 
         self._eliminate_false_positives(expr, init_val, state)
 
-        s = self.constrain(state, expr, init_val)
+        s = self.constrain(state, expr, init_val, site)
         if s is not None:
             state = s
 
