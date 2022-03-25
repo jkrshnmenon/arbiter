@@ -9,6 +9,9 @@ from arbiter.master_chief import *
 log_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
                                        'logs'))
 
+VERBOSITY = False
+LOG_LEVEL = logging.DEBUG
+
 def setup_logger(name):
     fname = os.path.basename(sys.argv[1])
 
@@ -18,7 +21,7 @@ def setup_logger(name):
 
     logger = logging.getLogger(name)
     logger.addHandler(json_handler)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(LOG_LEVEL)
 
 
 def do_stuff(fname):
@@ -35,14 +38,17 @@ def do_stuff(fname):
             'calloc': ['n'],
             'realloc': ['c', 'n']}
 
-    sa = SA_Recon(project, list(maps.keys()), maps, verbose=True)
+    sa = SA_Recon(project, list(maps.keys()), maps, verbose=VERBOSITY)
     sa.analyze()
-    sb = SA_Adv(sa, call_depth=1, require_dd=True, verbose=True)
+    sb = SA_Adv(sa, call_depth=1, require_dd=True, verbose=VERBOSITY)
     sb.analyze_all()
-    se = SymExec(sb, constrain, require_dd=True, verbose=True)
+    se = SymExec(sb, constrain, require_dd=True, verbose=VERBOSITY)
     se.run_all()
 
-    return se.postprocessing(3)
+    reports = se.postprocessing(3)
+    for r in reports:
+        with open(f"ArbiterReport_{hex(r.bbl)}", "w") as f:
+            f.write("\n".join(str(x) for x in r.bbl_history))
 
 
 if __name__ == '__main__':
