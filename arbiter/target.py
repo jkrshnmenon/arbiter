@@ -266,6 +266,41 @@ class Report:
         return self._site
 
 
+class ArbiterReport:
+    def __init__(self, bbl, function, bbl_history, function_history):
+        """
+        All arguments are integers/list of integers
+        """
+        self._bbl = bbl
+        self._function = function
+        self._bbl_history = bbl_history
+        self._function_history = function_history
+    
+    
+    def __str__(self):
+        return f"ArbiterRepor(bbl={hex(self.bbl)}, function={hex(self.function)})"
+    
+    @property
+    def bbl(self):
+        return self._bbl
+    
+    @bbl.setter
+    def bbl(self, val):
+        self._bbl = val
+
+    @property
+    def function(self):
+        return self._function
+
+    @property
+    def bbl_history(self):
+        return self._bbl_history
+
+    @property
+    def function_history(self):
+        return self._function_history
+
+
 class DerefHook():
     def _find_in_list(self, child, sym_vars):
         for x in sym_vars:

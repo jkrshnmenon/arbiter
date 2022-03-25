@@ -674,12 +674,16 @@ class SymExec(StaticAnalysis, DerefHook):
         if len(sat_states) == 0:
             return None
 
-        output = {'function': first_target.addr, 'bbl': report.site.bbl,
-                  'bbl_history': list(sat_states[0].history.bbl_addrs),
-                  'callstack': [x.current_function_address for x in sat_states[0].callstack]
-                  }
+        # output = {'function': first_target.addr, 'bbl': report.site.bbl,
+        #           'bbl_history': list(sat_states[0].history.bbl_addrs),
+        #           'callstack': [x.current_function_address for x in sat_states[0].callstack]
+        #           }
+        output = ArbiterReport(bbl=report.site.bbl, function=first_target.addr,
+                                bbl_history=list(sat_states[0].history.bbl_addrs),
+                                function_history=[x.current_function_address for x in sat_states[0].callstack])
         if report.site.callee == 'EOF':
-            output['bbl'] = self._first_bbl(report.state)
+            # output['bbl'] = self._first_bbl(report.state)
+            output.bbl = self._first_bbl(report.state)
         return output
 
     def verify(self, report, blocks):
@@ -698,9 +702,7 @@ class SymExec(StaticAnalysis, DerefHook):
 
     def postprocessing(self, pred_level=1):
         '''
-        Unhook all hooks
-        Iterate through the reports generated
-        For each report, get the function call paths
+        Return a list of ArbiterReport's
         '''
         logger.info("Starting postprocessing")
         self._stats_filename = 'FP.json'
