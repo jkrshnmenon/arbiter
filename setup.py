@@ -12,5 +12,6 @@ setup(
    long_description=open(f'{BASE_DIR}/README.md').read(),
    install_requires=[
        "angr",
+       "python-json-logger",
    ],
 )
