@@ -51,7 +51,7 @@ def main(template, target):
     se.run_all()
 
     template.save_results(se.postprocessing(pred_level=CALLER_LEVEL))
-    
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Use Arbiter to run a template against a specific binary')
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     elif target.exists() is False:
         sys.stderr.write(f"Error: {target} does not exist\n")
         sys.exit(-1)
-    
+
     try:
         spec = util.spec_from_file_location(vd.stem, vd.absolute().as_posix())
         template = util.module_from_spec(spec)
@@ -81,16 +81,16 @@ if __name__ == '__main__':
     except:
         sys.stderr.write(f"Error could not import VD: {vd}\n")
         sys.exit(-1)
-    
+
     CALLER_LEVEL = args.r
-    
+
     if args.l and Path(args.l).exists():
         LOG_DIR = Path(args.l).resolve().as_posix()
         enable_logging(vd, target)
-    
+
     if args.j and Path(args.j).exists():
         JSON_DIR = Path(args.j).resolve().as_posix()
-    
+
     if args.s:
         STRICT_MODE = True
 
