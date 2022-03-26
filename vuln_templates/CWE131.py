@@ -1,4 +1,4 @@
-def apply_constraint(state, expr, init_val, site=None):
+def apply_constraint(state, expr, init_val, **kwargs):
     for x in init_val:
         if x.length < expr.length:
             x = x.zero_extend(expr.length-x.length)

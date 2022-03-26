@@ -1,80 +1,37 @@
-import os
-import sys
-import angr
-import logging
-from pythonjsonlogger import jsonlogger
-
-SA_FLAG=False
-SE_FLAG=False
-
-import arbiter
-from arbiter.master_chief import *
-
-bin_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
-                                       'dataset', 'Juliet_testcases'))
-log_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 
-                                       'logs'))
+def apply_constraint(state, expr, init_val, **kwargs):
+    site = kwargs['site']
+    for x in init_val:
+        if x.length < expr.length:
+            x = x.sign_extend(expr.length-x.length)
+        if site.callee == 'printHexCharLine':
+            x = x[7:0]
+            expr = expr[7:0]
+        elif site.callee == 'printIntLine':
+            x = x[31:0]
+            expr = expr[31:0]
+        state.solver.add(expr.SLT(x))
 
 
-def setup_logger(name):
-    fname = os.path.basename(sys.argv[1])
-
-    formatter = jsonlogger.JsonFormatter(fmt='%(asctime)s %(levelname)s %(name)s %(message)s')
-    json_handler = logging.FileHandler(log_dir+'/juliet-{}.log'.format(fname))
-    json_handler.setFormatter(formatter)
-
-    logger = logging.getLogger(name)
-    logger.addHandler(json_handler)
-    logger.setLevel(logging.DEBUG)
-
-
-def do_stuff(fname):
-    def constrain(state, expr, init_val, site):
-        for x in init_val:
-            if x.length < expr.length:
-                x = x.sign_extend(expr.length-x.length)
-            if site.callee == 'printHexCharLine':
-                x = x[7:0]
-                expr = expr[7:0]
-            elif site.callee == 'printIntLine':
-                x = x[31:0]
-                expr = expr[31:0]
-            state.solver.add(expr.SLT(x))
-
+def specify_sinks():
     sinks = [
         'printIntLine',
         'printHexCharLine',
         'printLongLongLine',
         ]
     maps = {x: ['n'] for x in sinks}
+    return maps
+
+
+def specify_sources():
     checkpoints = {'atoi': 0,
                    'rand': 0,
                    'fscanf': 3,
                    'badSource': 0}
 
-    bin_file = os.path.join(bin_dir, fname)
-    project = angr.Project(bin_file, load_options={'auto_load_libs': False})
-
-    sa = SA_Recon(project, sinks, maps)
-    sa.analyze()
-    # sa.analyze_one(0x422cfd)
-
-    sb = SA_Adv(sa, checkpoints, call_depth=1, require_dd=SA_FLAG)
-    sb.analyze_all()
-
-    se = SymExec(sb, constrain, require_dd=SE_FLAG)
-    se.run_all()
-
-    se.postprocessing(2)
+    return checkpoints
 
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} <binary>")
-        sys.exit(1)
-
-    setup_logger("arbiter.master_chief.sa_recon")
-    setup_logger("arbiter.master_chief.sa_advanced")
-    setup_logger("arbiter.master_chief.symbolic_execution")
-    do_stuff(sys.argv[1])
-    import time; time.sleep(2*60)
+def save_results(reports):
+    for r in reports:
+        with open(f"ArbiterReport_{hex(r.bbl)}", "w") as f:
+            f.write("\n".join(str(x) for x in r.bbl_history))
