@@ -62,6 +62,9 @@ class SA_Adv(StaticAnalysis):
         Print some numbers about this step of the analysis
         Should be invoked only after analyze_all
         '''
+        if not self._verbose:
+            return 
+
         with open(f'{os.path.basename(self._project.filename)}_DDA.json', 'w') as f:
             json.dump(self._statistics, f, indent=2)
 
