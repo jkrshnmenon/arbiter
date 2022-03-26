@@ -17,7 +17,7 @@ def func_entry_to_sink():
     the function's entry point to the sink
     This function will match all 
     """
-    def constrain(state, expr, init_val):
+    def constrain(state, expr, init_val, site=None):
         """
         Here, state is the angr state object currently stopped at the block
         where the target_sink is invoked.
@@ -49,7 +49,7 @@ def func_param_to_sink():
     The second pattern in Arbiter where the data flow is tracked from
     the parameter to an initialization function to the sink
     """
-    def constrain(state, expr, init_val):
+    def constrain(state, expr, init_val, site=None):
         return
 
     sinks = ['target_sink']
@@ -74,7 +74,7 @@ def func_return_to_sink():
     The third pattern in Arbiter where the data flow is tracked from
     the return value of an initialization function to the sink
     """
-    def constrain(state, expr, init_val):
+    def constrain(state, expr, init_val, site=None):
         return
 
     sinks = ['target_sink']

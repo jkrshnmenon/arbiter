@@ -52,7 +52,7 @@ def parse_syscalls(syscall_table, return_filter=None):
     return sinks, maps, checkpoints
 
 def do_stuff(fname, sinks, maps, checkpoints):
-    def constrain(state, expr, init_val):
+    def constrain(state, expr, init_val, site=None):
         s1 = state.copy()
         # target function returned -1 (indicating error)
         s1.solver.add(init_val[0] == 0xffffffffffffffff)

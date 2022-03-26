@@ -26,7 +26,7 @@ def setup_logger(name):
 
 
 def do_stuff(fname):
-    def constrain(state, expr, init_val):
+    def constrain(state, expr, init_val, site=None):
         return  
 
     bin_file = fname

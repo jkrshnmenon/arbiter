@@ -11,7 +11,7 @@ import arbiter
 from arbiter.master_chief import *
 
 bin_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
-                                       'test_binaries', 'Juliet_testcases'))
+                                       'dataset', 'Juliet_testcases'))
 log_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 
                                        'logs'))
 
