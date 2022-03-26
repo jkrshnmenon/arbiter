@@ -9,6 +9,15 @@ def specify_sinks():
     maps = {'malloc': ['n'], 'operator new': ['n']}
     return maps
 
+<<<<<<< HEAD
+=======
+def do_stuff(fname):
+    def constrain(state, expr, init_val, site=None):
+        for x in init_val:
+            if x.length < expr.length:
+                x = x.zero_extend(expr.length-x.length)
+            state.solver.add(expr < x)
+>>>>>>> f5a9c13 (additional argument for constrain function)
 
 def specify_sources():
     checkpoints = {'atoi': 0,
