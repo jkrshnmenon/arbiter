@@ -12,7 +12,7 @@ logger = logging.getLogger(name=__name__)
 
 
 class SA_Adv(StaticAnalysis):
-    def __init__(self, sa_recon, checkpoint={}, require_dd=True, call_depth=None, verbose=False):
+    def __init__(self, sa_recon, checkpoint={}, require_dd=True, call_depth=1, json_dir=None):
         '''
         :param sa_recon:        The StaticAnalysisRecon object
         :param checkpoint       A dictionary that maps a function name to the
@@ -24,7 +24,7 @@ class SA_Adv(StaticAnalysis):
 
         self._statistics = {}
 
-        self._checkpoint = {} 
+        self._checkpoint = {}
         for x in checkpoint:
             name = x
             if x.startswith("SYS_"):
@@ -37,7 +37,8 @@ class SA_Adv(StaticAnalysis):
         self._targets = sa_recon.targets
         self._require_dd = require_dd
         self._call_depth = call_depth
-        self._verbose = verbose
+        self._verbose = True if json_dir is not None else False
+        self._json_dir = json_dir
 
         self._statistics['identified_functions'] = len(self._targets)
         if len(self._targets) <= 0:
@@ -56,16 +57,16 @@ class SA_Adv(StaticAnalysis):
     @property
     def targets(self):
         return self._final_targets
-    
+
     def _dump_stats(self):
         '''
         Print some numbers about this step of the analysis
         Should be invoked only after analyze_all
         '''
         if not self._verbose:
-            return 
+            return
 
-        with open(f'{os.path.basename(self._project.filename)}_DDA.json', 'w') as f:
+        with open(f'{self._json_dir}_DDA.json', 'w') as f:
             json.dump(self._statistics, f, indent=2)
 
     def get_slice_target(self, node, target):
@@ -328,17 +329,17 @@ class SA_Adv(StaticAnalysis):
             if retval is not None:
                 if type(target.source) == int:
                     return retval
-                
+
                 call_sites = [x for x in target.get_call_sites() if x < block.addr]
                 callees = {x: self._callee_name(x) for x in call_sites}
 
                 matches = []
                 for x in target.source:
                     matches += list(filter(lambda y: x in y, callees))
-                
+
                 if len(matches) == 0:
                     return retval
-                
+
             if flag is True:
                 # Couldn't find a correct store stmt
                 # Track the address of the store
@@ -397,7 +398,7 @@ class SA_Adv(StaticAnalysis):
                         prev = target.prev_block(prev)
                     except IndexError:
                         raise DataDependencyError("No call sites found")
-                    
+
                 if self._callee_name(target.func, prev) in target.source:
                     # 0 indicates that the source is the return value of some sim_proc
                     target._nodes[node.bbl].source = 0
@@ -479,7 +480,7 @@ class SA_Adv(StaticAnalysis):
             all_matches = []
             for x in self._checkpoint:
                 all_matches += list(filter(lambda y: x in y, names))
-            
+
             self._statistics[sa1.addr]['sources'] = len(all_matches)
 
             if len(all_matches) == 0:
@@ -487,7 +488,7 @@ class SA_Adv(StaticAnalysis):
                 if self._require_dd is True:
                     raise angr.AngrCFGError()
                     return
-        
+
         self._statistics[sa1.addr]['constants'] = 0
 
         target_obj = SA2_Target(cfg, cdg, ddg, func)
@@ -521,7 +522,7 @@ class SA_Adv(StaticAnalysis):
                 for y in names:
                     if x in y:
                         filtered_checkpoints[y] = self._checkpoint[x]
-            
+
             target.source = filtered_checkpoints if len(filtered_checkpoints) > 0 else target.addr
 
         for n in target.nodes:
@@ -547,8 +548,8 @@ class SA_Adv(StaticAnalysis):
                 continue
             except AttributeError as e:
                 target._nodes[n].source = -1
-    
-    
+
+
         if target.flag is False:
             logger.info("No valid sinks in function @ 0x%x" % target.addr)
         else:
@@ -573,5 +574,4 @@ class SA_Adv(StaticAnalysis):
                 logger.error(e)
                 continue
 
-        if self._verbose is True:
-            self._dump_stats()
+        self._dump_stats()

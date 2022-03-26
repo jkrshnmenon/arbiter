@@ -23,7 +23,7 @@ class SymExec(StaticAnalysis, DerefHook):
     If the advanced static analysis was able to detect a source for the input,
     use that to create a state.
     '''
-    def __init__(self, sa, constrain, require_dd=None, verbose=False):
+    def __init__(self, sa, constrain, require_dd=None, json_dir=None):
         '''
         :param sa           :The SA_Adv object
         :param constrain    :A function that takes in a state, the expression
@@ -43,7 +43,8 @@ class SymExec(StaticAnalysis, DerefHook):
         self.sinks = sa.sinks
         self._cfg = sa.cfg
         self._require_dd = sa._require_dd if require_dd is None else require_dd
-        self._verbose = verbose
+        self._verbose = True if json_dir is not None else False
+        self._json_dir = json_dir
 
         self._statistics = {}
         self._stats_filename = 'UCSE.json'
@@ -76,11 +77,11 @@ class SymExec(StaticAnalysis, DerefHook):
         Should be invoked only after run_all
         '''
         if not self._verbose:
-            return 
+            return
 
-        with open(f'{os.path.basename(self._project.filename)}_{self._stats_filename}', 'w') as f:
+        with open(f'{self._json_dir}/{self._stats_filename}', 'w') as f:
             json.dump(self._statistics, f, indent=2)
-    
+
     def _watchdog(self, timeout):
         logger.debug(f"Watchdog started, waiting for {timeout}s")
         # When we timeout, Event.wait will return False
@@ -115,7 +116,7 @@ class SymExec(StaticAnalysis, DerefHook):
                         action=self._mem_write_hook)
 
         return state
-    
+
     def _signal_handler(self, signum, frame):
         logger.debug("Signal handler invoked")
         raise TimeoutException("Timeout", errors="Timed out")
@@ -188,7 +189,7 @@ class SymExec(StaticAnalysis, DerefHook):
             except angr.SimUnsatError:
                 val = None
                 logger.info("Got Unsat")
-        
+
         if len(init_val) == 0:
             if state.satisfiable():
                 val = state.solver.eval(expr)
@@ -242,6 +243,7 @@ class SymExec(StaticAnalysis, DerefHook):
                 if self._require_dd is True:
                     self._dump_stats()
                     return
+
             filtered_sym_vars = sym_vars
 
         obj['filtered_expressions'] = len(filtered_sym_vars)
@@ -282,7 +284,7 @@ class SymExec(StaticAnalysis, DerefHook):
                 raise angr.AngrAnalysisError("No paths found")
 
             if len(pg.active) == 0:
-                logger.debug("Found %d paths" % len(pg.found))
+                logger.debug("Found %d paths; No active paths" % len(pg.found))
                 self._statistics[target.addr]['paths_found'] += len(pg.found)
                 for pp in pg.found:
                     self._watchdog_event.set()
@@ -292,7 +294,7 @@ class SymExec(StaticAnalysis, DerefHook):
                         return
 
             while len(pg.active) > 0 and counter < 3:
-                logger.debug("Found %d paths" % len(pg.found))
+                logger.debug("Found %d paths; active paths remaining" % len(pg.found))
                 counter += len(pg.found)
                 self._statistics[target.addr]['paths_found'] += len(pg.found)
                 end = time.time()
@@ -458,8 +460,7 @@ class SymExec(StaticAnalysis, DerefHook):
         for x in self._targets:
             self.run_one(x)
 
-        if self._verbose is True:
-            self._dump_stats()
+        self._dump_stats()
 
 
     def _blocks_in_func(self, func, call_sites):
@@ -689,6 +690,19 @@ class SymExec(StaticAnalysis, DerefHook):
             output.bbl = self._first_bbl(report.state)
         return output
 
+    def convert_reports(self):
+        TP = []
+        for sink in self.reports:
+            report = self.reports[sink]
+            try:
+                func_addr = self._cfg.functions.floor_func(report.state.addr).addr
+            except AttributeError:
+                func_addr = 0
+            bbl_history = list(report.state.history.bbl_addrs)
+            TP.append(ArbiterReport(sink, func_addr, bbl_history, [func_addr]))
+
+        return TP
+
     def verify(self, report, blocks):
         output = None
         for x in blocks:
@@ -707,6 +721,10 @@ class SymExec(StaticAnalysis, DerefHook):
         '''
         Return a list of ArbiterReport's
         '''
+        if pred_level == -1:
+            TP = self.convert_reports()
+            return
+
         logger.info("Starting postprocessing")
         self._stats_filename = 'FP.json'
         TP = []
@@ -764,8 +782,7 @@ class SymExec(StaticAnalysis, DerefHook):
 
         logger.info("Finished postprocessing")
 
-        if self._verbose is True:
-            self._dump_stats()
+        self._dump_stats()
 
         return TP
 

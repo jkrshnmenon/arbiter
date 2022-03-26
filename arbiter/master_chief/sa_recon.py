@@ -16,7 +16,7 @@ class SA_Recon(StaticAnalysis):
     A class which performs the basic static analysis
     Analyse the function at func_addr and search for calls to sinks
     '''
-    def __init__(self, p, sinks, maps={}, verbose=False):
+    def __init__(self, p, sinks, maps={}, json_dir=None):
         '''
         :param p:           The angr Project instance
         :param sinks:       A list of sinks to look for
@@ -27,7 +27,8 @@ class SA_Recon(StaticAnalysis):
 
         self.map = {}
         self._statistics = {}
-        self._verbose = verbose
+        self._verbose = True if json_dir is not None else False
+        self._json_dir = json_dir
 
         for x in sinks:
             if x in maps.keys():
@@ -71,7 +72,10 @@ class SA_Recon(StaticAnalysis):
         Print some numbers about this step of the analysis
         Should be invoked only after analyze
         '''
-        with open(f'{os.path.basename(self._project.filename)}_Recon.json', 'w') as f:
+        if not self._verbose:
+            return
+
+        with open(f'{self._json_dir}/Recon.json', 'w') as f:
             json.dump(self._statistics, f, indent=2)
 
     def _is_ret(self, arglist):
@@ -152,5 +156,4 @@ class SA_Recon(StaticAnalysis):
                 logger.error(e)
                 continue
 
-        if self._verbose is True:
-            self._dump_stats()
+        self._dump_stats()
