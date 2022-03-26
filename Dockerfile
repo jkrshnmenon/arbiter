@@ -5,7 +5,7 @@ RUN apt update && apt -y upgrade
 RUN apt install -y python3-dev python3-pip build-essential
 RUN useradd -s /bin/bash -m test
 COPY arbiter /home/test/arbiter
-COPY test_scripts /home/test/test_scripts
+COPY vuln_templates /home/test/vuln_templates
 COPY setup.py /home/test/setup.py
 COPY README.md /home/test/
 RUN chown -R test:test /home/test/

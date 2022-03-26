@@ -34,7 +34,7 @@ shell: build
 	docker run --rm --name $(CONTAINER_NAME) -it $(NS)/$(IMAGE_NAME):$(TAG) /bin/bash
 
 debug: build
-	docker run --rm -v $(PWD)/arbiter:/home/test/arbiter --name $(CONTAINER_NAME) -it $(NS)/$(IMAGE_NAME):$(TAG) /bin/bash
+	docker run --rm -v $(PWD)/arbiter:/home/test/arbiter -v $(PWD)/dataset:/home/test/dataset --name $(CONTAINER_NAME) -it $(NS)/$(IMAGE_NAME):$(TAG) /bin/bash
 
 exec:
 	docker run --rm --name $(CONTAINER_NAME) -it $(NS)/$(IMAGE_NAME):$(TAG)

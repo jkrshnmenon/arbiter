@@ -1,5 +1,6 @@
 arbiter.egg-info/
 build/
+logs/
 dist/
 **/__pycache__
 *.elf
