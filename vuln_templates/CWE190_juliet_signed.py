@@ -30,7 +30,6 @@ def specify_sources():
 
     return checkpoints
 
-
 def save_results(reports):
     for r in reports:
         with open(f"ArbiterReport_{hex(r.bbl)}", "w") as f:
