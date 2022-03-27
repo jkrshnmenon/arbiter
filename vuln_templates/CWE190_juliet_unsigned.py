@@ -68,8 +68,8 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <binary>")
         sys.exit(1)
-    setup_logger("SA_recon")
-    setup_logger("SA_advanced")
-    setup_logger("SE_logger")
+    setup_logger("arbiter.master_chief.sa_recon")
+    setup_logger("arbiter.master_chief.sa_advanced")
+    setup_logger("arbiter.master_chief.symbolic_execution")
     do_stuff(sys.argv[1])
     import time; time.sleep(2*60)
