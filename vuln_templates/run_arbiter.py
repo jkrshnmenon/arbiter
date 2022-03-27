@@ -2,9 +2,9 @@
 import sys
 import angr
 import logging
-import importlib
 
 from pathlib import Path
+from importlib import util
 from argparse import ArgumentParser
 
 from arbiter.master_chief import *
@@ -14,7 +14,7 @@ LOG_DIR = None
 JSON_DIR = None
 CALL_DEPTH = None
 STRICT_MODE = False
-LOG_LEVEL = logging.INFO
+LOG_LEVEL = logging.DEBUG
 
 
 def enable_logging(vd, target):
@@ -62,20 +62,22 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    vd = args.f
-    target = args.t
+    vd = Path(args.f)
+    target = Path(args.t)
 
-    if Path(vd).exists() is False:
-        sys.stderr.write(f"Error: {vd} does not exist")
+    if vd.exists() is False:
+        sys.stderr.write(f"Error: {vd} does not exist\n")
         sys.exit(-1)
-    elif Path(target).exists() is False:
-        sys.stderr.write(f"Error: {target} does not exist")
+    elif target.exists() is False:
+        sys.stderr.write(f"Error: {target} does not exist\n")
         sys.exit(-1)
     
     try:
-        template = importlib.import_module(Path(vd).with_suffix('').as_posix())
+        spec = util.spec_from_file_location(vd.stem, vd.absolute().as_posix())
+        template = util.module_from_spec(spec)
+        spec.loader.exec_module(template)
     except:
-        sys.stderr.write(f"Error could not import VD: {vd}")
+        sys.stderr.write(f"Error could not import VD: {vd}\n")
         sys.exit(-1)
     
     CALLER_LEVEL = args.r
