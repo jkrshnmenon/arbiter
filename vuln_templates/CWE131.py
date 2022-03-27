@@ -50,6 +50,12 @@ def do_stuff(fname):
 def specify_sources():
     return {}
 
+<<<<<<< HEAD
+=======
+    setup_logger("arbiter.master_chief.sa_recon")
+    setup_logger("arbiter.master_chief.sa_advanced")
+    setup_logger("arbiter.master_chief.symbolic_execution")
+>>>>>>> 85fcd35 (Fixing logging)
 
 def save_results(reports):
     for r in reports:

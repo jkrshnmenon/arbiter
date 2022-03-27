@@ -41,6 +41,12 @@ def specify_sources():
     checkpoints = {'time': 0}
     return checkpoints
 
+<<<<<<< HEAD
+=======
+    setup_logger("arbiter.master_chief.sa_recon")
+    setup_logger("arbiter.master_chief.sa_advanced")
+    setup_logger("arbiter.master_chief.symbolic_execution")
+>>>>>>> 85fcd35 (Fixing logging)
 
 def save_results(reports):
     for r in reports:
