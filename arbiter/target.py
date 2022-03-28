@@ -1,7 +1,6 @@
 import angr
 import claripy
-import logging
-from .master_chief.sa_base import StaticAnalysis
+from claripy.errors import ClaripyOperationError
 
 class Sink():
     def __init__(self, bbl=0, size=0, callee='', arglist=[]):
@@ -315,9 +314,14 @@ class DerefHook():
         return False
 
     def _find_child_in_list(self, ast, vars):
-        for child in list(set(ast.recursive_leaf_asts)):
-            if self._find_in_list(child, vars):
-                return True
+        try:
+            for child in list(set(ast.recursive_leaf_asts)):
+                if self._find_in_list(child, vars):
+                    return True
+        except ClaripyOperationError:
+            # Could not iterate over leaf ast's
+            #TODO how to handle this ?
+            return False
 
         if self._find_in_list(ast, vars):
             return True

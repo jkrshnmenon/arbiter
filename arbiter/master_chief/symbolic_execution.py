@@ -128,7 +128,10 @@ class SymExec(StaticAnalysis, DerefHook):
         # TODO : Generalize for all archs instead of just x64
         # The false positive occurs when all the bits in init_vals are not
         # present in the expr
-        children = [x for x in set(expr.recursive_children_asts) if x.symbolic]
+        try:
+            children = [x for x in set(expr.recursive_children_asts) if x.symbolic]
+        except ClaripyOperationError:
+            children = []
 
         if len(children) <= 1:
             return
@@ -230,9 +233,13 @@ class SymExec(StaticAnalysis, DerefHook):
 
         if len(sym_vars) > 1:
             filtered_sym_vars = []
-            for child in list(set(new_expr.recursive_leaf_asts)):
-                if self._find_in_list(child, sym_vars):
-                    filtered_sym_vars.append(child)
+            try:
+                for child in list(set(new_expr.recursive_leaf_asts)):
+                    if self._find_in_list(child, sym_vars):
+                        filtered_sym_vars.append(child)
+            except ClaripyOperationError:
+                #TODO how to handle this ?
+                pass
             if len(filtered_sym_vars) == 0 and self._require_dd is False:
                 filtered_sym_vars = sym_vars
         else:
