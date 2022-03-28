@@ -23,7 +23,7 @@ def enable_logging(vd, target):
 
     loggers = ['sa_recon', 'sa_advanced', 'symbolic_execution']
     for logger in loggers:
-        l = logging.getLogger(f"arbiter.masterchief.{logger}")
+        l = logging.getLogger(f"arbiter.master_chief.{logger}")
 
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler = logging.FileHandler(f"{LOG_DIR}/arbiter_{vd}_{target}.log")
