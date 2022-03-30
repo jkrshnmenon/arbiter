@@ -16,6 +16,8 @@ CALL_DEPTH = None
 STRICT_MODE = False
 LOG_LEVEL = logging.DEBUG
 
+logging.getLogger('angr').setLevel(logging.CRITICAL)
+
 
 def enable_logging(vd, target):
     vd = Path(vd).stem
