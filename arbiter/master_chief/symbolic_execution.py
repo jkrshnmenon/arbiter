@@ -5,9 +5,10 @@ import angr
 import signal
 import claripy
 import logging
-import traceback
 import threading
 import networkx as nx
+
+from tqdm import tqdm
 from ..target import *
 from archinfo import Endness
 from .sa_base import StaticAnalysis
@@ -452,7 +453,7 @@ class SymExec(StaticAnalysis, DerefHook):
                     continue
 
     def run_one(self, target):
-        for x in target.nodes:
+        for x in tqdm(target.nodes, desc="Exploring nodes in target", leave=False):
             try:
                 self._statistics[target.addr] = {}
                 self._execute_one(target, target._nodes[x])
@@ -464,7 +465,7 @@ class SymExec(StaticAnalysis, DerefHook):
                 continue
 
     def run_all(self):
-        for x in self._targets:
+        for x in tqdm(self._targets, desc="Exploring targets"):
             self.run_one(x)
 
         self._dump_stats()

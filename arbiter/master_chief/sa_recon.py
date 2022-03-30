@@ -1,9 +1,8 @@
-import os
-import re
 import json
 import time
 import angr
 import logging
+from tqdm import tqdm
 from ..target import SA1_Target
 from ..utils import FatalError
 from .sa_base import StaticAnalysis
@@ -145,7 +144,7 @@ class SA_Recon(StaticAnalysis):
             return
 
     def analyze(self):
-        for addr, func in self._cfg.functions.items():
+        for addr, func in tqdm(self._cfg.functions.items(), desc="Identifying functions"):
             logger.info("Starting recon of 0x%x" % addr)
             try:
                 if self._check_sinks(func) is True:

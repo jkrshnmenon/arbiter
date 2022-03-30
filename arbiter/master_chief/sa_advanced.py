@@ -3,6 +3,7 @@ import json
 import time
 import angr
 import logging
+from tqdm import tqdm
 from ..utils import Utils, FatalError, DataDependencyError, ConstantDataError
 from ..target import SA2_Target
 from angr.sim_options import refs
@@ -560,7 +561,7 @@ class SA_Adv(StaticAnalysis):
         return target
 
     def analyze_all(self):
-        for x in self._targets:
+        for x in tqdm(self._targets, desc="Analyzing targets"):
             try:
                 obj = self.analyze_one(x)
                 if obj.flag is True:
