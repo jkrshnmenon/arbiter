@@ -12,7 +12,7 @@ from arbiter.master_chief import *
 
 LOG_DIR = None
 JSON_DIR = None
-CALL_DEPTH = None
+CALL_DEPTH = 1
 STRICT_MODE = False
 LOG_LEVEL = logging.DEBUG
 
