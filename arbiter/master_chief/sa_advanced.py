@@ -67,7 +67,7 @@ class SA_Adv(StaticAnalysis):
         if not self._verbose:
             return
 
-        with open(f'{self._json_dir}_DDA.json', 'w') as f:
+        with open(f'{self._json_dir}/DDA.json', 'w') as f:
             json.dump(self._statistics, f, indent=2)
 
     def get_slice_target(self, node, target):
