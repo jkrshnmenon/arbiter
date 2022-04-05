@@ -35,7 +35,7 @@
 #
 
 
-def apply_constraints(state, expr, init_val, **kwargs):
+def apply_constraint(state, expr, init_val, **kwargs):
     #
     # Here, expr represents `newlen`.
     # The init_val can be represented a list of values that were combined to produce `newlen`
@@ -54,10 +54,11 @@ def specify_sources():
 
 
 def specify_sinks():
-    # Note that the second argument of PyString_FromStringAndSize denotes the size of the buffer to be allocated.
-    # This is similar to realloc
+    # In the source code, the second argument of PyString_FromStringAndSize denotes the size of the buffer.
+    # But in the binary, the first argument is used for this purpose.
+    # Maybe some compiler optimization ?
 
-    maps = {'PyString_FromStringAndSize': ['c', 'n']}
+    maps = {'PyString_FromStringAndSize': ['n']}
     return maps
 
 

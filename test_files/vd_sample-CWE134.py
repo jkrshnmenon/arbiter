@@ -32,7 +32,7 @@
 #
 
 
-def apply_constraints(state, expr, init_val, **kwargs):
+def apply_constraint(state, expr, init_val, **kwargs):
     #
     # Here, expr represents `logBuff`.
     # If logBuff was a constant string, the `addr` would contain the address of this string in the binary.
