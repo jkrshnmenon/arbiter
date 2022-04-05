@@ -51,8 +51,7 @@ class SymExec(StaticAnalysis, DerefHook):
         self._stats_filename = 'UCSE.json'
         self._statistics['identified_functions'] = len(self._targets)
 
-        # Used to synchronize with the watchdog
-        self._watchdog_event = threading.Event()
+        self._timeout_received = False
 
         if len(self._targets) <= 0:
             raise FatalError("No targets for SymExec")
@@ -84,11 +83,20 @@ class SymExec(StaticAnalysis, DerefHook):
             json.dump(self._statistics, f, indent=2)
 
     def _watchdog(self, timeout):
-        logger.debug(f"Watchdog started, waiting for {timeout}s")
-        # When we timeout, Event.wait will return False
-        if not self._watchdog_event.wait(timeout):
-            logger.debug(f"Watchdog timed out, sending SIG_ALARM to self")
-            os.kill(os.getpid(), signal.SIGALRM)
+        logger.debug("Watchdog started")
+        start_time = None
+        if self._timeout_received is True:
+            logger.debug("Timeout_received flag is set to True")
+            logger.debug("Watchdog setting timeout_received flag to False")
+            self._timeout_received = False
+        while not self._timeout_received:
+            cur_time = time.time()
+            if start_time is None or (cur_time - start_time) > timeout:
+                logger.debug("Watchdog setting alarm for %ds" % timeout)
+                signal.alarm(timeout)
+                start_time = time.time()
+            logger.debug("Watchdog sleeping for %ds" % (timeout/10))
+            time.sleep(timeout/10)
 
     def _hook_checkpoint(self, target, cname):
         cfunc = self.cfg.functions.get(cname)
@@ -279,15 +287,15 @@ class SymExec(StaticAnalysis, DerefHook):
         counter = 0
         start = time.time()
         logger.info("Starting exploration 0x%0x => 0x%0x" % (init_state.addr, site.bbl))
-        self._watchdog_event.clear()
-
+        self._timeout_received = False
         t = threading.Thread(target=self._watchdog, args=(300,))
         t.start()
+        # self._watchdog(300)
         try:
             pg.explore(find=sorted(block.instruction_addrs)[-1])
 
             if len(pg.found) == 0:
-                self._watchdog_event.set()
+                self._timeout_received = True
                 t.join()
                 raise angr.AngrAnalysisError("No paths found")
 
@@ -295,7 +303,7 @@ class SymExec(StaticAnalysis, DerefHook):
                 logger.debug("Found %d paths; No active paths" % len(pg.found))
                 self._statistics[target.addr]['paths_found'] += len(pg.found)
                 for pp in pg.found:
-                    self._watchdog_event.set()
+                    self._timeout_received = True
                     if self._check_state(pg.found[0], site, target) is True:
                         logger.debug("Waiting for watchdog to join")
                         t.join()
@@ -309,17 +317,16 @@ class SymExec(StaticAnalysis, DerefHook):
                 self._statistics[target.addr]['exploration_time'] = int(end - start)
                 for pp in pg.found:
                     if self._check_state(pp, site, target):
-                        self._watchdog_event.set()
+                        self._timeout_received = True
                         logger.debug("Waiting for watchdog to join")
                         t.join()
                         return
                 pg.drop(stash='found')
-                # adamd: I don't know if this is necessary, the watchdog should be able to wake us up
-                #signal.alarm(300)
+                signal.alarm(300)
                 logger.debug("Wrapping up %d active paths" % len(pg.active))
                 pg.explore(find=sorted(block.instruction_addrs)[-1])
         except (TimeoutException, KeyboardInterrupt) as e:
-            self._watchdog_event.set()
+            self._timeout_received = True
             logger.debug("Waiting for watchdog to join")
             t.join()
             logger.debug("Got an exception")
@@ -333,7 +340,7 @@ class SymExec(StaticAnalysis, DerefHook):
         for pp in pg.found:
             self._check_state(pp, site, target)
 
-        self._watchdog_event.set()
+        self._timeout_received = True
         logger.debug("Waiting for watchdog to join")
         t.join()
         del init_state
@@ -449,7 +456,7 @@ class SymExec(StaticAnalysis, DerefHook):
                 try:
                     self._explore_one(target, site, x)
                 except angr.AngrAnalysisError as e:
-                    logger.exeception(e)
+                    logger.error(e)
                     continue
 
     def run_one(self, target):
@@ -458,10 +465,10 @@ class SymExec(StaticAnalysis, DerefHook):
                 self._statistics[target.addr] = {}
                 self._execute_one(target, target._nodes[x])
             except angr.AngrAnalysisError as e:
-                logger.exception(e)
+                logger.error(e)
                 continue
             except (KeyboardInterrupt, AssertionError, AttributeError) as e:
-                logger.exception(e)
+                logger.error(e)
                 continue
 
     def run_all(self):
@@ -641,9 +648,10 @@ class SymExec(StaticAnalysis, DerefHook):
         sat_states = []
 
         pg = self._project.factory.simulation_manager(init_state)
-        self._watchdog_event = threading.Event()
+        self._timeout_received = False
         t = threading.Thread(target=self._watchdog, args=(600,))
         t.start()
+        # signal.alarm(600)
         try:
             logger.info("Starting exploration to 0x%x" % first_target.addr)
             start_time = time.time()
@@ -655,10 +663,10 @@ class SymExec(StaticAnalysis, DerefHook):
             end = time.time()
             logger.debug("Found %d paths" % len(pg.found))
             self._statistics[first_target.addr][start]['exploring_callers'] = int(end - start_time)
-            self._watchdog_event.set()
+            self._timeout_received = True
             t.join()
 
-            self._watchdog_event.clear()
+            self._timeout_received = False
             t = threading.Thread(target=self._watchdog, args=(600,))
             t.start()
             start_time = time.time()
@@ -672,13 +680,13 @@ class SymExec(StaticAnalysis, DerefHook):
             self._statistics[first_target.addr][start]['reaching_sink'] = int(end - start_time)
             logger.debug("Found %d states" % len(final_states))
 
-            self._watchdog_event.set()
+            self._timeout_received = True
             t.join()
             for state in final_states:
                 if self._check_state(state, report.site, None, self._statistics[first_target.addr][start]) is True:
                     sat_states.append(state)
         except (TimeoutException, KeyboardInterrupt, AssertionError) as e:
-            self._watchdog_event.set()
+            self._timeout_received = True
             t.join()
             logger.debug("Got an exception")
             logger.error(e)
@@ -719,7 +727,7 @@ class SymExec(StaticAnalysis, DerefHook):
                 if output is not None:
                     break
             except AssertionError as e:
-                self._watchdog_event.set()
+                self._timeout_received = True
                 logger.error(e)
                 continue
 
