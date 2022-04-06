@@ -15,7 +15,9 @@ from .sa_base import StaticAnalysis
 from ..utils import Utils, FatalError
 from .sa_advanced import SA_Adv
 
+DEBUG = os.environ.get('DEBUG', False)
 logger = logging.getLogger(name=__name__)
+
 
 
 class SymExec(StaticAnalysis, DerefHook):
