@@ -34,3 +34,16 @@ optional arguments:
   -s           Enable strict mode (stricter static data-flow based filtering)
 
 ```
+
+The parameters `-f` and `-t` are required while the others are optional.
+
+# Writing your own VD
+
+In order to write a new VD, all you need to do is to implement 4 functions, namely
+`apply_constraint`, `specify_sources`, `specify_sinks` and `save_results`.
+
+Please refer to the `examples` directory for more information about each of these functions.
+
+
+Once you have this VD ready, invoke the `run_arbiter` with the `-f` parameter pointing to this VD and the `-t` parameter pointing to the target binary.
+

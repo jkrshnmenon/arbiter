@@ -22,4 +22,3 @@ This repository contains some examples of using Arbiter to detect different CWE 
 
 
 It also contains templates that were used for evaluating Arbiter on the Juliet Test suite as well as real world binaries in the `vuln_templates` directory.
-The argument to each of these scripts is the path to the binary that you want to test.
