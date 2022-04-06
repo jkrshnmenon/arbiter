@@ -173,7 +173,7 @@ class SA2_Target():
     def prev_block(self, bbl):
         idx = self.block_idx(bbl)
         return sorted(list(self.func.block_addrs_set))[idx - 1]
-    
+
     def next_block(self, bbl):
         idx = self.block_idx(bbl)
         if len(self.func.block_addrs_set) <= idx:
@@ -181,12 +181,14 @@ class SA2_Target():
         return sorted(list(self.func.block_addrs_set))[idx + 1]
 
     def expr_from_state(self, project, state, arg_num):
+        # TODO This is broken
+        return None
         cca = project.analyses.CallingConvention(self._func)
         args = cca.cc.arg_locs(cca.prototype)
         if cca.cc is None or args is None:
             return None
         if arg_num == 0:
-            return cca.cc.get_return_val(state)
+            return cca.cc.return_val()
         elif len(args) >= arg_num:
             return cca.cc.arg(state, arg_num - 1)
 
@@ -274,15 +276,15 @@ class ArbiterReport:
         self._function = function
         self._bbl_history = bbl_history
         self._function_history = function_history
-    
-    
+
+
     def __str__(self):
         return f"ArbiterRepor(bbl={hex(self.bbl)}, function={hex(self.function)})"
-    
+
     @property
     def bbl(self):
         return self._bbl
-    
+
     @bbl.setter
     def bbl(self, val):
         self._bbl = val
@@ -327,7 +329,7 @@ class DerefHook():
             return True
 
         return False
-    
+
     def _get_child_from_list(self, ast, sym_vars):
         for child in list(set(ast.recursive_leaf_asts)):
             if self._find_in_list(child, sym_vars):
@@ -343,7 +345,7 @@ class DerefHook():
                 return idx
 
         return None
-    
+
     def _mem_write_hook(self, state):
         if state.globals.get('track_write', 0) == 0:
             return
@@ -398,7 +400,7 @@ class DerefHook():
         state.globals['sym_vars'].append(sym_var)
         state.memory.store(expr, sym_var, endness=angr.archinfo.Endness.LE)
         state.inspect.mem_read_expr = sym_var
-    
+
 
 
 class DefaultHook(angr.SimProcedure, DerefHook):
@@ -443,7 +445,7 @@ class CheckpointHook(DefaultHook):
             sym_var = claripy.BVS('ret', self.state.arch.bits)
             self.state.globals['sym_vars'].append(sym_var)
             return sym_var
-        
+
         expr = self._nth_arg(self.state, arg_num)
         self.state.globals['sym_vars'].append(expr)
 
