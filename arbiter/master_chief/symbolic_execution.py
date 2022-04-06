@@ -58,6 +58,7 @@ class SymExec(StaticAnalysis, DerefHook):
 
         self._set_up_hooks()
         signal.signal(signal.SIGALRM, self._signal_handler)
+        self._timeout_received = False
 
         self.reports = {}
 
@@ -83,20 +84,15 @@ class SymExec(StaticAnalysis, DerefHook):
             json.dump(self._statistics, f, indent=2)
 
     def _watchdog(self, timeout):
-        logger.debug("Watchdog started")
-        start_time = None
-        if self._timeout_received is True:
-            logger.debug("Timeout_received flag is set to True")
-            logger.debug("Watchdog setting timeout_received flag to False")
-            self._timeout_received = False
-        while not self._timeout_received:
-            cur_time = time.time()
-            if start_time is None or (cur_time - start_time) > timeout:
-                logger.debug("Watchdog setting alarm for %ds" % timeout)
-                signal.alarm(timeout)
-                start_time = time.time()
-            logger.debug("Watchdog sleeping for %ds" % (timeout/10))
-            time.sleep(timeout/10)
+        self._timeout_received = False
+        logger.debug(f"Watchdog started, waiting for {timeout}s")
+        # When we timeout, Event.wait will return False
+        # If we don't timeout, Event.wait returns True
+        if not self._watchdog_event.wait(timeout):
+            while not self._timeout_received:
+                logger.debug(f"Watchdog timed out, sending SIG_ALARM to self")
+                os.kill(os.getpid(), signal.SIGALRM)
+                time.sleep(1)
 
     def _hook_checkpoint(self, target, cname):
         cfunc = self.cfg.functions.get(cname)
@@ -326,11 +322,18 @@ class SymExec(StaticAnalysis, DerefHook):
                 logger.debug("Wrapping up %d active paths" % len(pg.active))
                 pg.explore(find=sorted(block.instruction_addrs)[-1])
         except (TimeoutException, KeyboardInterrupt) as e:
+            self._watchdog_event.set()
             self._timeout_received = True
             logger.debug("Waiting for watchdog to join")
-            t.join()
+            t.join(timeout=1)
             logger.debug("Got an exception")
             self._statistics[target.addr]['paths_timedout'] += 1
+            logger.error(e)
+        except RecursionError as e:
+            self._watchdog_event.set()
+            logger.debug("Waiting for watchdog to join")
+            t.join(timeout=1)
+            logger.debug("Got an exception")
             logger.error(e)
 
         end = time.time()
@@ -686,6 +689,7 @@ class SymExec(StaticAnalysis, DerefHook):
                 if self._check_state(state, report.site, None, self._statistics[first_target.addr][start]) is True:
                     sat_states.append(state)
         except (TimeoutException, KeyboardInterrupt, AssertionError) as e:
+            self._watchdog_event.set()
             self._timeout_received = True
             t.join()
             logger.debug("Got an exception")
@@ -738,12 +742,7 @@ class SymExec(StaticAnalysis, DerefHook):
         Return a list of ArbiterReport's
         '''
         if pred_level == -1:
-<<<<<<< HEAD
-            TP = self.convert_reports()
-            return
-=======
             return self.convert_reports()
->>>>>>> bc6c263 (modifying arguments to constrain function)
 
         logger.info("Starting postprocessing")
         self._stats_filename = 'FP.json'
