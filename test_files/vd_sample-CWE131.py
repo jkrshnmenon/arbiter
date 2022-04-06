@@ -45,6 +45,8 @@ def apply_constraint(state, expr, init_val, **kwargs):
     for x in init_val:
         if x.length < expr.length:
             x = x.zero_extend(expr.length-x.length)
+        elif x.length > expr.length:
+            continue
         state.solver.add(expr < x)
     return
 
