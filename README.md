@@ -18,6 +18,8 @@ Arbiter can then be used to detect if this property is violated at any of the co
 
 # Arbiter examples
 
-This repository contains some examples of using Arbiter to detect different CWE types in the `vuln_templates` directory.
-The argument to each of these scripts is the path to the binary that you want to test.
+This repository contains some examples of using Arbiter to detect different CWE types in the `examples` directory.
 
+
+It also contains templates that were used for evaluating Arbiter on the Juliet Test suite as well as real world binaries in the `vuln_templates` directory.
+The argument to each of these scripts is the path to the binary that you want to test.
