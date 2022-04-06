@@ -61,6 +61,7 @@ class SymExec(StaticAnalysis, DerefHook):
 
         self._set_up_hooks()
         signal.signal(signal.SIGALRM, self._signal_handler)
+        self._timeout_received = False
 
         self.reports = {}
 
