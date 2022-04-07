@@ -37,6 +37,16 @@ optional arguments:
 
 The parameters `-f` and `-t` are required while the others are optional.
 
+
+An example of running the VD for CWE-131 for the `ls` binary would be as follows
+
+```
+mkdir <log_dir>
+mkdir <json_dir>
+cd <path/to/arbiter>/vuln_templates/
+./run_arbiter.py -f ./CWE131.py -t /bin/ls -l <log_dir> -j <json_dir>
+```
+
 # Writing your own VD
 
 In order to write a new VD, all you need to do is to implement 4 functions, namely
