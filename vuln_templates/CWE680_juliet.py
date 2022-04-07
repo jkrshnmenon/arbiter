@@ -1,68 +1,25 @@
-import os
-import sys
-import angr
-import logging
-from pythonjsonlogger import jsonlogger
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-import arbiter
-from arbiter.master_chief import *
-
-bin_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
-                                       'dataset', 'Juliet_testcases'))
-log_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 
-                                       'logs'))
+def apply_constraint(state, expr, init_val, **kwargs):
+    for x in init_val:
+        if x.length < expr.length:
+            x = x.zero_extend(expr.length-x.length)
+        state.solver.add(expr < x)
 
 
-def setup_logger(name):
-    fname = os.path.basename(sys.argv[1])
-
-    formatter = jsonlogger.JsonFormatter(fmt='%(asctime)s %(levelname)s %(name)s %(message)s')
-    json_handler = logging.FileHandler(log_dir+'/juliet-{}.log'.format(fname))
-    json_handler.setFormatter(formatter)
-
-    logger = logging.getLogger(name)
-    logger.addHandler(json_handler)
-    logger.setLevel(logging.DEBUG)
-
-
-def do_stuff(fname):
-    def constrain(state, expr, init_val, site=None):
-        for x in init_val:
-            if x.length < expr.length:
-                x = x.zero_extend(expr.length-x.length)
-            state.solver.add(expr < x)
-
+def specify_sinks():
     maps = {'malloc': ['n'], 'operator new': ['n']}
-    sinks = list(maps.keys())
+    return maps
+
+
+def specify_sources():
     checkpoints = {'atoi': 0,
                    'rand': 0,
                    'fscanf': 3,
                    'badSource': 0}
 
-    bin_file = os.path.join(bin_dir, fname)
-    project = angr.Project(bin_file, load_options={'auto_load_libs': False})
-
-    sa = SA_Recon(project, sinks, maps)
-    sa.analyze()
-    # sa.analyze_one(0x805d8ba)
-
-    sb = SA_Adv(sa, checkpoints, require_dd=False, call_depth=1)
-    sb.analyze_all()
-
-    se = SymExec(sb, constrain, require_dd=False)
-    se.run_all()
-
-    se.postprocessing(2)
+    return checkpoints
 
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} <binary>")
-        sys.exit(1)
-    setup_logger("arbiter.master_chief.sa_recon")
-    setup_logger("arbiter.master_chief.sa_advanced")
-    setup_logger("arbiter.master_chief.symbolic_execution")
-    do_stuff(sys.argv[1])
-    import time; time.sleep(2*60)
+def save_results(reports):
+    for r in reports:
+        with open(f"ArbiterReport_{hex(r.bbl)}", "w") as f:
+            f.write("\n".join(str(x) for x in r.bbl_history))

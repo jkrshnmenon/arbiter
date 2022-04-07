@@ -13,5 +13,6 @@ setup(
    install_requires=[
        "angr",
        "python-json-logger",
+       "tqdm",
    ],
 )
