@@ -86,6 +86,8 @@ class SymExec(StaticAnalysis, DerefHook):
             json.dump(self._statistics, f, indent=2)
 
     def _watchdog(self, timeout):
+        if DEBUG:
+            return
         self._timeout_received = False
         logger.debug(f"Watchdog started, waiting for {timeout}s")
         # When we timeout, Event.wait will return False
