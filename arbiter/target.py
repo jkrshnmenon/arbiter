@@ -309,6 +309,38 @@ class ArbiterReport:
 
 
 
+class PensieveObj:
+    def __init__(self, sym_report, sa_obj):
+        assert sym_report is not None
+        assert sa_obj is not None, f"sa_obj is None for {str(sym_report)}"
+        self.sym_report = sym_report
+        self.sa_obj = sa_obj
+    
+
+    @property
+    def callee(self):
+        return self.sym_report.site.callee
+    
+    @property
+    def bbl(self):
+        return self.sym_report.site.bbl
+    
+    @property
+    def source(self):
+        return self.sa_obj.source
+    
+    @property
+    def func(self):
+        return self.sa_obj.func
+    
+    @property
+    def func_addr(self):
+        return self.sa_obj.addr
+    
+    @property
+    def state(self):
+        return self.sym_report.state
+
 class ASTHelper():
     def _find_in_list(self, child, sym_vars):
         for x in sym_vars:
@@ -456,7 +488,7 @@ class CheckpointHook(DefaultHook):
     def run(self, **kwargs):
         assert 'arg_num' in kwargs['kwargs']
         arg_num = kwargs['kwargs']['arg_num']
-        if self.state.globals.get('globals', None) is None:
+        if self.state.globals.get('sym_vars', None) is None:
             self.state.globals['sym_vars'] = []
         if arg_num == 0:
             sym_var = claripy.BVS('ret', self.state.arch.bits)
