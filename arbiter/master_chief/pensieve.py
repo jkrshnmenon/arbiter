@@ -8,14 +8,14 @@ from tqdm import tqdm
 
 from ..target import *
 from ..utils import FatalError
-from .sa_base import StaticAnalysis
+from .symbolic_execution import SymExec
 
 
 logger = logging.getLogger(name=__name__)
 
 
 
-class Pensieve(StaticAnalysis, ConstraintHook):
+class Pensieve(SymExec, ConstraintHook):
     '''
     Replay reports from SymExec to identify target instructions
     '''
@@ -25,31 +25,34 @@ class Pensieve(StaticAnalysis, ConstraintHook):
         '''
         self.se = se
         super(Pensieve, self).__init__(se.project)
-        self.replay_targets = se.verified_reports
 
         self._verbose = True if json_dir is not None else False
         self._json_dir = json_dir
         self._statistics = {}
 
-        self._statistics['replay_targets'] = len(self.replay_targets)
+        self.replay_targets = []
+        for x in self.se.reports:
+            sa_obj = self._target_from_addr(self.func_from_state(x.state))
+            self.replay_targets.append(PensieveObj(x, sa_obj))
 
+        self._statistics['replay_targets'] = len(self.replay_targets)
         if len(self.replay_targets) <= 0:
             raise FatalError("No targets for replay analysis")
         
         self.memories = {}
     
 
-    def _add_to_memories(self, report, obj):
-        self.memories[report.bbl] = obj
+    def _add_to_memories(self, obj, output):
+        self.memories[obj.bbl] = output
 
     
-    def replay_one(self, report):
-        sink_addr = report.bbl
-        func_addr = report.function
+    def replay_one(self, obj):
+        for state in self.generate_states(obj.sa_obj, obj.sym_report.site):
+            self._explore_one(obj.sa_obj, obj.sym_report.site, state)
         pass
     
     def replay_all(self):
-        for report in self.verified_reports:
-            obj = self.replay_one(report)
-            self._add_to_memories(report, obj)
+        for obj in self.replay_targets:
+            output = self.replay_one(obj)
+            self._add_to_memories(obj, output)
 
