@@ -347,9 +347,7 @@ class DerefHook():
         return None
 
     def _mem_write_hook(self, state):
-        if state.globals.get('track_write', 0) == 0:
-            return
-        elif state.globals['track_write'] is False:
+        if state.globals.get('track_write', False) is False:
             return
 
         expr = state.inspect.mem_write_address
@@ -389,11 +387,10 @@ class DerefHook():
         if flag1 and flag2:
             return
 
-        if state.globals.get('no_create', 0) != 0:
-            if state.globals['no_create'] is True:
-                state.globals['sym_vars'].append(val)
-                state.globals['derefs'].append(expr)
-                return
+        if state.globals.get('no_create', False) is True:
+            state.globals['sym_vars'].append(val)
+            state.globals['derefs'].append(expr)
+            return
 
         sym_var = claripy.BVS('df_var', state.inspect.mem_read_length*8)
         state.globals['derefs'].append(expr)
