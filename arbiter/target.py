@@ -2,6 +2,8 @@ import angr
 import claripy
 from claripy.errors import ClaripyOperationError
 
+
+
 class Sink():
     def __init__(self, bbl=0, size=0, callee='', arglist=[]):
         self._target = {'bbl': bbl,
@@ -86,6 +88,7 @@ class Sink():
         self._target['args'] = arg_list
 
 
+
 class SA1_Target():
     def __init__(self, func):
         self._func = func
@@ -122,6 +125,7 @@ class SA1_Target():
     @property
     def node_count(self):
         return len(self._nodes)
+
 
 
 class SA2_Target():
@@ -246,6 +250,7 @@ class SA2_Target():
         return self._nodes[site].callee
 
 
+
 class Report:
     def __init__(self, state, site):
         self._state = state
@@ -265,6 +270,7 @@ class Report:
     @property
     def site(self):
         return self._site
+
 
 
 class ArbiterReport:
@@ -302,7 +308,8 @@ class ArbiterReport:
         return self._function_history
 
 
-class DerefHook():
+
+class ASTHelper():
     def _find_in_list(self, child, sym_vars):
         for x in sym_vars:
             if child.length != x.length:
@@ -346,6 +353,15 @@ class DerefHook():
 
         return None
 
+
+
+class ConstraintHook(ASTHelper):
+    def on_new_constraint(self, state):
+        import IPython; IPython.embed()
+
+
+
+class DerefHook(ASTHelper):
     def _mem_write_hook(self, state):
         if state.globals.get('track_write', False) is False:
             return
@@ -400,7 +416,7 @@ class DerefHook():
 
 
 
-class DefaultHook(angr.SimProcedure, DerefHook):
+class DefaultHook(angr.SimProcedure):
     def _push_regs(self, state):
         state.stack_push(state.regs.r9)
         state.stack_push(state.regs.r8)
@@ -425,12 +441,16 @@ class DefaultHook(angr.SimProcedure, DerefHook):
         self.state.globals['sym_vars'].append(expr)
         return expr
 
+
+
 class FirstArgHook(angr.SimProcedure):
     def run(self, arg):
         expr = claripy.BVS('sim_retval', self.state.project.arch.bits)
         self.state.solver.add(expr == arg)
         self.state.globals['sym_vars'].append(expr)
         return arg
+
+
 
 class CheckpointHook(DefaultHook):
     def run(self, **kwargs):
@@ -448,7 +468,7 @@ class CheckpointHook(DefaultHook):
 
 
 
-class StrlenHook(DefaultHook):
+class StrlenHook(DefaultHook, ASTHelper):
     def run(self):
         if self.state.project.arch.bits == 32:
             inp = self.state.stack_pop()
@@ -466,7 +486,8 @@ class StrlenHook(DefaultHook):
         return expr
 
 
-class StrchrHook(DefaultHook):
+
+class StrchrHook(DefaultHook, ASTHelper):
     def run(self):
         if self.state.project.arch.bits == 32:
             inp = self.state.stack_pop()
@@ -483,6 +504,7 @@ class StrchrHook(DefaultHook):
         retval = expr + inp
         self.state.globals['sym_vars'].append(expr)
         return retval
+
 
 
 class GetenvHook(DefaultHook):
