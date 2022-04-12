@@ -12,7 +12,7 @@ from tqdm import tqdm
 from ..target import *
 from archinfo import Endness
 from .sa_base import StaticAnalysis
-from ..utils import Utils, FatalError
+from ..utils import FatalError
 from .sa_advanced import SA_Adv
 
 DEBUG = os.environ.get('DEBUG', False)
@@ -63,6 +63,7 @@ class SymExec(StaticAnalysis, DerefHook):
         signal.signal(signal.SIGALRM, self._signal_handler)
 
         self.reports = {}
+        self.verified_reports = []
 
     def __str__(self):
         return f"SymExec(project={self._project}, targets={len(self.targets)}, reports={len(self.reports)})"
@@ -272,10 +273,11 @@ class SymExec(StaticAnalysis, DerefHook):
         return self._apply_sz_constraints(state, new_expr, site, obj)
 
     def _explore_one(self, target, site, init_state):
+        self._set_up_bp(init_state)
         self._statistics[target.addr]['paths_found'] = 0
         self._statistics[target.addr]['paths_timedout'] = 0
         try:
-            block = target.cfg.get_any_node(site.bbl).block
+            block = target.cfg.model.get_any_node(site.bbl).block
         except AttributeError:
             logger.warn("Could not find target sink")
             return
@@ -374,7 +376,7 @@ class SymExec(StaticAnalysis, DerefHook):
                     expr)
             s.globals['sym_vars'] = [expr]
             s.globals['derefs'] = []
-            states.append(self._set_up_bp(s))
+            states.append(s)
 
         return states
 
@@ -383,7 +385,7 @@ class SymExec(StaticAnalysis, DerefHook):
         states = []
         for x in target.func.get_call_sites():
             if name == self._callee_name(target.func, x):
-                bl = target.cfg.get_any_node(x)
+                bl = target.cfg.model.get_any_node(x)
                 sources.append(sorted(bl.instruction_addrs)[-1])
                 logger.debug("Adding checkpoint address %s:0x%0x" % (name, sources[-1]))
 
@@ -406,11 +408,10 @@ class SymExec(StaticAnalysis, DerefHook):
 
             state.globals['sym_vars'] = [expr]
             state.globals['derefs'] = []
-            self._set_up_bp(state)
 
         return states
 
-    def _get_checkpoint_state(self, target, site):
+    def _get_checkpoint_state(self, target):
         logger.debug("Creating checkpoint states for %s" % target.name)
         states = []
         if not isinstance(target.source, dict):
@@ -445,11 +446,10 @@ class SymExec(StaticAnalysis, DerefHook):
 
         init_state.globals['sym_vars'] = sym_vars
         init_state.globals['derefs'] = []
-        return self._set_up_bp(init_state)
+        return init_state
 
     def _execute_one(self, target, site):
         if target.source == target.addr and site.callee != 'EOF':
-            # Case 1
             if 'entry_state' not in self._statistics[target.addr]:
                 self._statistics[target.addr]['entry_state'] = 0
             self._statistics[target.addr]['entry_state'] += 1
@@ -557,7 +557,7 @@ class SymExec(StaticAnalysis, DerefHook):
                         logger.error("Could not find _start")
                         name = ''
                     if name == '__libc_start_main':
-                        bbl = self.cfg.get_any_node(f.addr)
+                        bbl = self.cfg.model.get_any_node(f.addr)
                         idx = self.get_target_ins(bbl, 1)
                         rhs = bbl.block.vex.statements[idx].data
                         starts = [rhs.constants[0].value]
@@ -727,7 +727,7 @@ class SymExec(StaticAnalysis, DerefHook):
             bbl_history = list(report.state.history.bbl_addrs)
             TP.append(ArbiterReport(sink, func_addr, bbl_history, [func_addr]))
 
-        return TP
+        self.verified_reports = TP
 
     def verify(self, report, blocks):
         output = None
@@ -748,7 +748,8 @@ class SymExec(StaticAnalysis, DerefHook):
         Return a list of ArbiterReport's
         '''
         if pred_level == -1:
-            return self.convert_reports()
+            self.convert_reports()
+            return self.verified_reports
 
         logger.info("Starting postprocessing")
         self._stats_filename = 'FP.json'
@@ -809,7 +810,8 @@ class SymExec(StaticAnalysis, DerefHook):
 
         self._dump_stats()
 
-        return TP
+        self.verified_reports = TP
+        return self.verified_reports
 
 
 
