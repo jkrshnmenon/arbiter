@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import angr
+import string
 import logging
 
 from pathlib import Path
@@ -14,6 +15,7 @@ LOG_DIR = None
 JSON_DIR = None
 CALL_DEPTH = 1
 STRICT_MODE = False
+IDENTIFIER = None
 LOG_LEVEL = logging.DEBUG
 
 logging.getLogger('angr').setLevel(logging.CRITICAL)
@@ -40,7 +42,10 @@ def main(template, target):
 
     sink_map = template.specify_sinks()
     sa = SA_Recon(project, sinks=sink_map.keys(), maps=sink_map, json_dir=JSON_DIR)
-    sa.analyze()
+    if IDENTIFIER is None:
+        sa.analyze()
+    else:
+        sa.analyze_one(IDENTIFIER)
 
     sources = template.specify_sources()
     sb = SA_Adv(sa, checkpoint=sources, require_dd=STRICT_MODE, call_depth=CALL_DEPTH, json_dir=JSON_DIR)
@@ -57,6 +62,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Use Arbiter to run a template against a specific binary')
     parser.add_argument('-f', metavar='VD', type=str, help='The VD template to use', required=True)
     parser.add_argument('-t', metavar='TARGET', type=str, help='The target binary to analyze', required=True)
+    parser.add_argument('-i', metavar='ADDR', type=str, help='Specify a target function identifier (name|addr) to focus the analysis on', required=False, default="")
     parser.add_argument('-r', metavar='LEVEL', type=int, help='Number of levels for Adaptive False Positive Reduction', required=False, default=-1)
     parser.add_argument('-l', metavar='LOG_DIR', type=str, help='Enable logging to LOG_DIR', required=False)
     parser.add_argument('-j', metavar='JSON_DIR', type=str, help='Enable verbose statistics dumps to JSON_DIR', required=False)
@@ -81,15 +87,32 @@ if __name__ == '__main__':
     except:
         sys.stderr.write(f"Error could not import VD: {vd}\n")
         sys.exit(-1)
+    
+    if len(args.i) == 0:
+        IDENTIFIER = None
+    elif args.i.isdecimal():
+        IDENTIFIER = int(args.i)
+    elif args.i.startswith('0x') or all(c in string.hexdigits for c in args.i):
+        IDENTIFIER = int(args.i, 16)
+    else:
+        IDENTIFIER = args.i
 
     CALLER_LEVEL = args.r
 
-    if args.l and Path(args.l).exists():
-        LOG_DIR = Path(args.l).resolve().as_posix()
-        enable_logging(vd, target)
+    if args.l:
+        Path(args.l).mkdir(parents=True, exist_ok=True)
+        if Path(args.l).exists():
+            LOG_DIR = Path(args.l).resolve().as_posix()
+            enable_logging(vd, target)
+        else:
+            sys.stderr.write(f"Directory {args.l} does not exist and we could not create it\n")
 
-    if args.j and Path(args.j).exists():
-        JSON_DIR = Path(args.j).resolve().as_posix()
+    if args.j:
+        Path(args.j).mkdir(parents=True, exist_ok=True)
+        if Path(args.j).exists():
+            JSON_DIR = Path(args.j).resolve().as_posix()
+        else:
+            sys.stderr.write(f"Directory {args.l} does not exist and we could not create it\n")
 
     if args.s:
         STRICT_MODE = True
