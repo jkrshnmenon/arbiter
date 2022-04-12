@@ -131,6 +131,17 @@ class SymExec(StaticAnalysis, DerefHook):
         logger.debug("Signal handler invoked")
         raise TimeoutException("Timeout", errors="Timed out")
 
+    def _target_from_addr(self, addr):
+        for x in self._targets:
+            if x.addr == addr:
+                return x
+
+        return None
+
+    def func_from_state(self, state):
+        func = self._cfg.functions.floor_func(state.addr)
+        return func
+
     def _first_bbl(self, state):
         return list(state.history.bbl_addrs)[0]
 
@@ -448,30 +459,26 @@ class SymExec(StaticAnalysis, DerefHook):
         init_state.globals['derefs'] = []
         return init_state
 
-    def _execute_one(self, target, site):
+    def generate_states(self, target, site):
         if target.source == target.addr and site.callee != 'EOF':
             if 'entry_state' not in self._statistics[target.addr]:
                 self._statistics[target.addr]['entry_state'] = 0
             self._statistics[target.addr]['entry_state'] += 1
             init_state = self._create_entry_state(target, site)
-            self._explore_one(target, site, init_state)
+            return [init_state]
         else:
             if 'checkpoint_state' not in self._statistics[target.addr]:
                 self._statistics[target.addr]['checkpoint_state'] = 0
             self._statistics[target.addr]['checkpoint_state'] += 1
-            init_states = self._get_checkpoint_state(target, site)
-            for x in init_states:
-                try:
-                    self._explore_one(target, site, x)
-                except angr.AngrAnalysisError as e:
-                    logger.error(e)
-                    continue
+            init_states = self._get_checkpoint_state(target)
+            return init_states
 
     def run_one(self, target):
         for x in tqdm(target.nodes, desc="Exploring nodes in target", leave=False):
             try:
                 self._statistics[target.addr] = {}
-                self._execute_one(target, target._nodes[x])
+                for state in self.generate_states(target, target._nodes[x]):
+                    self._explore_one(target, target._nodes[x], state)
             except angr.AngrAnalysisError as e:
                 logger.error(e)
                 continue
@@ -636,7 +643,7 @@ class SymExec(StaticAnalysis, DerefHook):
 
     def verify_one(self, report, start, block_dict):
         avoid = block_dict['avoid']
-        first_target = self._cfg.functions.floor_func(report.state.addr)
+        first_target = self.func_from_state(report.state)
 
         if first_target is None:
             logger.error("Could not find the function for 0x%x" % report.state.addr)
@@ -721,13 +728,14 @@ class SymExec(StaticAnalysis, DerefHook):
         for sink in self.reports:
             report = self.reports[sink]
             try:
-                func_addr = self._cfg.functions.floor_func(report.state.addr).addr
+                func_addr = self.func_from_state(report.state).addr
+                SA_obj = 
             except AttributeError:
                 func_addr = 0
             bbl_history = list(report.state.history.bbl_addrs)
             TP.append(ArbiterReport(sink, func_addr, bbl_history, [func_addr]))
 
-        self.verified_reports = TP
+        return TP
 
     def verify(self, report, blocks):
         output = None
@@ -748,8 +756,7 @@ class SymExec(StaticAnalysis, DerefHook):
         Return a list of ArbiterReport's
         '''
         if pred_level == -1:
-            self.convert_reports()
-            return self.verified_reports
+            return self.convert_reports()
 
         logger.info("Starting postprocessing")
         self._stats_filename = 'FP.json'
@@ -778,9 +785,9 @@ class SymExec(StaticAnalysis, DerefHook):
         for sink in self.reports:
             report = self.reports[sink]
             try:
-                func_addr = self._cfg.functions.floor_func(report.state.addr).addr
+                func_addr = self.func_from_state(report.state).addr
             except AttributeError:
-                if self._cfg.functions.floor_func(report.state.addr) is None:
+                if self.func_from_state(report.state) is None:
                     logger.error("Could not find function 0x%x" % report.state.addr)
                     continue
             if func_addr not in func_sink_map:
@@ -804,14 +811,16 @@ class SymExec(StaticAnalysis, DerefHook):
                 is_tp = self.verify(report, blocks)
                 if is_tp is not None:
                     TP.append(is_tp)
+                else:
+                    sink = report.site.bbl
+                    del self.reports[sink]
             logger.info("Done with function @ %#x" % func_addr)
 
         logger.info("Finished postprocessing")
 
         self._dump_stats()
 
-        self.verified_reports = TP
-        return self.verified_reports
+        return TP
 
 
 
