@@ -42,6 +42,12 @@ class Pensieve(SymExec, ConstraintHook):
         self.memories = {}
     
 
+    def _check_state(self, state, site, target=None, obj=None):
+        return
+
+    def _set_up_bp(self, state):
+        pass
+
     def _add_to_memories(self, obj, output):
         self.memories[obj.bbl] = output
 
