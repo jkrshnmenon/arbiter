@@ -1,5 +1,4 @@
 import angr
-import logging
 from ..utils import Utils
 from ..target import *
 

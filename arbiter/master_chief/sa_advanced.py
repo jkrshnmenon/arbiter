@@ -4,7 +4,7 @@ import time
 import angr
 import logging
 from tqdm import tqdm
-from ..utils import Utils, FatalError, DataDependencyError, ConstantDataError
+from ..utils import FatalError, DataDependencyError, ConstantDataError
 from ..target import SA2_Target
 from angr.sim_options import refs
 from .sa_base import StaticAnalysis
