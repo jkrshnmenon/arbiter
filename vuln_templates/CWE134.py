@@ -6,7 +6,7 @@ def apply_constraint(state, expr, init_val, **kwargs):
     return
 
 
-def specify_sinks()
+def specify_sinks():
     maps = {'printf': ['n'],
             'fprintf': ['c', 'n'],
             'dprintf': ['c', 'n'],
@@ -31,4 +31,4 @@ def specify_sources():
 def save_results(reports):
     for r in reports:
         with open(f"ArbiterReport_{hex(r.bbl)}", "w") as f:
-            f.write("\n".join(str(x)f rox in r.bbl_history))
+            f.write("\n".join(str(x) for x in r.bbl_history))

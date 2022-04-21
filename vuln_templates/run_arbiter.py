@@ -30,10 +30,11 @@ def enable_logging(vd, target):
         l = logging.getLogger(f"arbiter.master_chief.{logger}")
 
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler = logging.FileHandler(f"{LOG_DIR}/arbiter_{vd}_{target}.log")
-        handler.setFormatter(formatter)
+        if LOG_DIR is not None:
+            handler = logging.FileHandler(f"{LOG_DIR}/arbiter_{vd}_{target}.log")
+            handler.setFormatter(formatter)
+            l.addHandler(handler)
 
-        l.addHandler(handler)
         l.setLevel(LOG_LEVEL)
 
 
@@ -103,9 +104,9 @@ if __name__ == '__main__':
         Path(args.l).mkdir(parents=True, exist_ok=True)
         if Path(args.l).exists():
             LOG_DIR = Path(args.l).resolve().as_posix()
-            enable_logging(vd, target)
         else:
             sys.stderr.write(f"Directory {args.l} does not exist and we could not create it\n")
+    enable_logging(vd, target)
 
     if args.j:
         Path(args.j).mkdir(parents=True, exist_ok=True)
