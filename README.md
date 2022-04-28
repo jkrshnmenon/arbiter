@@ -23,9 +23,12 @@ If you use Arbiter in a scientific publication, we would appreciate citations us
 
 ```
 @inproceedings {vadayath_arbiter_22,
-title = {Arbiter: Bridging the Static and Dynamic Divide in Vulnerability Discovery on Binary Programs},
-booktitle = {31st USENIX Security Symposium (USENIX Security 22)},
-year = {2022},
+	title        = {{Arbiter: Bridging the Static and Dynamic Divide in Vulnerability Discovery on Binary Programs}},
+	author       = {Vadayath, Jayakrishna and Eckert, Moritz and Zeng, Kyle and Weideman, Nicolaas and Menon, Gokulkrishna Praveen and Fratantonio, Yanick and Balzarotti, Davide and Doup{\'e}, Adam and Bao, Tiffany and Wang, Ruoyu and Hauser, Christophe and Shoshitaishvili, Yan}
+	booktitle    = {31st USENIX Security Symposium (USENIX Security 22)},
+	month        = aug,
+	year         = 2022,
+	address      = {Boston, MA},
 }
 ```
 
