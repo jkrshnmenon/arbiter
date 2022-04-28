@@ -729,7 +729,6 @@ class SymExec(StaticAnalysis, DerefHook):
             report = self.reports[sink]
             try:
                 func_addr = self.func_from_state(report.state).addr
-                SA_obj = 
             except AttributeError:
                 func_addr = 0
             bbl_history = list(report.state.history.bbl_addrs)
