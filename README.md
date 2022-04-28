@@ -7,13 +7,14 @@ Arbiter can then be used to detect if this property is violated at any of the co
 
 
 # Overview
-<embed src="/overview.pdf" type="application/pdf">
+<img src="overview.png" alt="overview image" width="100%">
 
 
 # Research paper
 We present our approach and the findings of this work in the following research paper:
 
 **Arbiter: Bridging the Static and Dynamic Divide in Vulnerability Discovery on Binary Programs**
+
 Jayakrishna Vadayath, Moritz Eckert, Kyle Zeng, Nicolaas Weideman, Gokulkrishna Praveen Menon, Yanick Fratantonio, Davide Balzarotti, Adam Doupé, Tiffany Bao, Ruoyu Wang, Christophe Hauser and Yan Shoshitaishvili
 
 *In Proceedings of USENIX Security Symposium August 2022,*
