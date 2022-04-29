@@ -1,5 +1,5 @@
 PWD ?= pwd_unknown
-NS ?= 4rbit3r
+NS ?= ghcr.io/jkrshnmenon/arbiter
 IMAGE_NAME ?= $(notdir $(PWD))
 TAG ?= latest
 CONTAINER_NAME ?= default_instance
