@@ -17,6 +17,7 @@ CALL_DEPTH = 1
 STRICT_MODE = False
 IDENTIFIER = None
 LOG_LEVEL = logging.DEBUG
+CALLER_LEVEL = -1
 
 logging.getLogger('angr').setLevel(logging.CRITICAL)
 

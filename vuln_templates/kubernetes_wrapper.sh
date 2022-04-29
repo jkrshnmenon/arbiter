@@ -1,33 +1,33 @@
 #!/bin/bash
 
 usage () {
-	echo "Usage : $0 -f <VD> -t <TARGET>"
+	echo "Usage : $0 -f <VD> -t <TARGET> [ -r <LEVEL> ]"
 	echo -e "  -f VD\t\t: The VD inside vuln_templates to use"
 	echo -e "  -t TARGET\t: The path to the target binary"
+	echo -e "  -r LEVEL\t: The level of Adaptive FP reduction"
 	echo ""
 	exit 0
 }
 
 
-VD=${VD-}
-TARGET=${TARGET-}
-NFS_DIR=/shared/arbiter
+VD=${VD:-}
+TARGET=${TARGET:-}
+LEVEL=${LEVEL:--1}
+NFS_DIR=/shared/arbiter/dataset
 TEMPLATE_DIR=$(realpath $(dirname $0))
 RUNNER=$TEMPLATE_DIR/run_arbiter.py
 
 
-if [ $# -lt 2 ]; then
-	usage
-fi
-
-
-while getopts "f:t:" OPTION; do
+while getopts "f:t:r:" OPTION; do
 	case $OPTION in
 		f)
 			VD=$OPTARG
 			;;
 		t)
 			TARGET=$OPTARG
+			;;
+		r)
+			LEVEL=$OPTARG
 			;;
 		*|h)
 			usage
@@ -54,4 +54,9 @@ elif [ ! -f "$BIN_PATH" ]; then
 	exit 1
 fi
 
-$RUNNER -f $VD_PATH -t $BIN_PATH -l $HOME/logs -j $HOME/logs
+if [ -n "$LEVEL" ]; then
+	$RUNNER -f $VD_PATH -t $BIN_PATH -l $HOME/logs -j $HOME/logs -r $LEVEL
+else
+	$RUNNER -f $VD_PATH -t $BIN_PATH -l $HOME/logs -j $HOME/logs
+fi
+
