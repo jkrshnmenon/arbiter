@@ -13,8 +13,11 @@ usage () {
 VD=${VD:-}
 TARGET=${TARGET:-}
 LEVEL=${LEVEL:--1}
+
+LOG_DIR=$HOME/logs
 NFS_DIR=/shared/arbiter/dataset
 TEMPLATE_DIR=$(realpath $(dirname $0))
+
 RUNNER=$TEMPLATE_DIR/run_arbiter.py
 
 
@@ -54,9 +57,19 @@ elif [ ! -f "$BIN_PATH" ]; then
 	exit 1
 fi
 
+cd $LOG_DIR
+
 if [ -n "$LEVEL" ]; then
-	$RUNNER -f $VD_PATH -t $BIN_PATH -l $HOME/logs -j $HOME/logs -r $LEVEL
+	$RUNNER -f $VD_PATH -t $BIN_PATH -l $LOG_DIR -j $LOG_DIR -r $LEVEL
 else
-	$RUNNER -f $VD_PATH -t $BIN_PATH -l $HOME/logs -j $HOME/logs
+	$RUNNER -f $VD_PATH -t $BIN_PATH -l $LOG_DIR -j $LOG_DIR
 fi
 
+if [ -z "$LEVEL" ]; then
+	LEVEL="N"
+fi
+
+PKG=$(echo $TARGET |cut -d'/' -f1)
+LOG_PATH="$NFS_DIR/$PKG/${VD%.py}_${LEVEL}_logs"
+
+cp -r $LOG_DIR $LOG_PATH
