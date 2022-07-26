@@ -1,2 +1,1 @@
-from .master_chief import *
-from .utils import FatalError
+from .arbiter import *
