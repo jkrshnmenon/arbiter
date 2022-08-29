@@ -11,7 +11,7 @@ setup(
    description='A static+dynamic vulnerability detection tool',
    long_description=open(f'{BASE_DIR}/README.md').read(),
    install_requires=[
-       "angr==9.0.10576",
+       "angr",
        "python-json-logger",
        "tqdm",
    ],
