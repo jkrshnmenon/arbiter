@@ -1,5 +1,5 @@
 import angr
-from typing import Any, AnyStr, Optional
+from typing import AnyStr, Optional
 
 
 from .spec import V
@@ -15,8 +15,6 @@ class Arbiter():
             self.add_target(filename)
         if vd is not None:
             self.add_vd(vd)
-
-        self.storage = Storage()
 
     def add_target(self, filename: AnyStr):
         self.storage.project = angr.Project(filename, auto_load_libs=False)
