@@ -39,7 +39,7 @@ class SinkMarker(Marker):
         self._function = function
 
     def __str__(self) -> str:
-        return f"{str(self.marker)} in {str(self.function)} @ {str(self.block)}"
+        return f"{str(self.marker)} in {hex(self.function.addr)} @ {hex(self.block.addr)}"
 
     @property
     def block_addr(self) -> int:
@@ -67,12 +67,12 @@ class SinkFlow(Marker):
         self._marker = path
 
     def __str__(self) -> str:
-        out = ">>>>>>>>"
+        out = ">>>>>>>>\n"
         for node in self.marker:
             out += "--------\n"
             out += f"{str(node)}\n"
             out += "--------\n"
-        out += "<<<<<<<<"
+        out += "<<<<<<<<\n"
         return out
 
     @property
