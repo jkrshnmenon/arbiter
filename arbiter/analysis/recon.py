@@ -26,46 +26,6 @@ class Recon():
     def vd(self):
         return self.storage.vd
     
-    def get_markers(self, callees: List[str], nodes: List[N], func: F) -> List[M]:
-        markers = []
-        # Iterate over sinks first
-        for tmp in nodes:
-            assert isinstance(tmp, VDNode), f"Invalid object {tmp}"
-            if isinstance(tmp, EOFNode):
-                # TODO: Find block with "ret" instruction
-                ret_block = None
-                markers.append(SinkMarker(tmp, ret_block, func))
-                continue
-            for callee_name, call_block in callees:
-                if tmp.name in callee_name:
-                    markers.append(SinkMarker(tmp, call_block, func))
-        
-        return markers
-
-    def check_one_func(self, func: F) -> List[M]:
-        """Identify source and sink nodes in one function
-
-        Args:
-            func (F): The angr function object
-
-        Returns:
-            List[M]: A list of SinkMarkers for this function
-        """
-
-        # Get list of callee's
-        callees = []
-        for call_site in func.get_call_sites():
-            try:
-                call_target = func.get_call_target(call_site)
-                call_target_name = self.cfg.functions.function(call_target).name
-                callees.append((call_target_name, self.cfg.get_any_node(call_site).block))
-            except:
-                continue
-
-        sinks = self.get_markers(callees=callees, nodes=self.vd.sinks, func=func)
-        sources = self.get_markers(callees=callees, nodes=self.vd.sources, func=func)
-        return sinks + sources
-    
     def find_marker_nodes(self, marker_map: Dict[int, List[M]], vd_node: N) -> List[M]:
         """Find a marker node corresponding to the VDNode
 
@@ -91,7 +51,7 @@ class Recon():
         Returns:
             bool: True if a path exists from root node to child node. False otherwise
         """
-        root_func, child_func = root_node.func, child_node.func
+        root_func, child_func = root_node.function, child_node.function
         
         # First check if both nodes are in the same function
         if root_func == child_func:
@@ -139,7 +99,7 @@ class Recon():
             return []
 
         marker_nodes = self.find_marker_nodes(marker_map=marker_map, vd_node=vd_path[0])
-        candidate_nodes = self.control_flow_filter(root_node=vd_path[0], candidate_nodes=marker_nodes)
+        candidate_nodes = self.control_flow_filter(root_node=root_node, candidate_nodes=marker_nodes)
 
         if len(vd_path) == 1:
             if len(candidate_nodes) == 0:
@@ -170,9 +130,11 @@ class Recon():
         
         flows = []
         for root in root_nodes:
-            marker_flow = self.recursively_find_flow(marker_map=marker_flow, vd_path=vd_path[1:], root_node=root)
-            if len(marker_flow) > 0:
-                flows.extend(marker_flow)
+            marker_flow = self.recursively_find_flow(marker_map=marker_map, vd_path=vd_path[1:], root_node=root)
+            for tmp in marker_flow:
+                if len(vd_path) == 2:
+                    tmp = [root] + tmp
+                flows.append(tmp)
         
         return flows
     
@@ -186,7 +148,50 @@ class Recon():
         for path in self.vd.iterate_paths():
             marker_flow = self.find_marker_flow(marker_map=marker_map, vd_path=path)
             flows.extend(marker_flow)
+        
+        for path in flows:
+            sf = SinkFlow(path=path)
+            self.storage.add_result(thing=sf)
 
+    def get_markers(self, callees: List[str], nodes: List[N], func: F) -> List[M]:
+        markers = []
+        # Iterate over sinks first
+        for tmp in nodes:
+            assert isinstance(tmp, VDNode), f"Invalid object {tmp}"
+            if isinstance(tmp, EOFNode):
+                # TODO: Find block with "ret" instruction
+                ret_block = None
+                markers.append(SinkMarker(tmp, ret_block, func))
+                continue
+            for callee_name, call_block in callees:
+                if tmp.name in callee_name:
+                    markers.append(SinkMarker(tmp, call_block, func))
+        
+        return markers
+
+    def check_one_func(self, func: F) -> List[M]:
+        """Identify source and sink nodes in one function
+
+        Args:
+            func (F): The angr function object
+
+        Returns:
+            List[M]: A list of SinkMarkers for this function
+        """
+
+        # Get list of callee's
+        callees = []
+        for call_site in func.get_call_sites():
+            try:
+                call_target = func.get_call_target(call_site)
+                call_target_name = self.cfg.functions.function(call_target).name
+                callees.append((call_target_name, self.cfg.get_any_node(call_site).block))
+            except:
+                continue
+
+        sinks = self.get_markers(callees=callees, nodes=self.vd.sinks, func=func)
+        sources = self.get_markers(callees=callees, nodes=self.vd.sources, func=func)
+        return sinks + sources
 
     def analyze_all(self):
         marker_map = {}
@@ -197,5 +202,7 @@ class Recon():
         
         self.identify_flows(marker_map)
 
+        for pp in self.storage.iter_sinks():
+            print(pp)
 
 
