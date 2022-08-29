@@ -1,5 +1,5 @@
 from typing import Optional, Tuple, Type
-from networkx import DiGraph
+from networkx import DiGraph, all_simple_paths
 
 from .vd_node import *
 
@@ -38,6 +38,14 @@ class VDGraph(object):
             self._sinks.append(n)
         else:
             self._sources.append(n)
+        
+    def remove_node(self, n: N) -> None:
+        assert n in self.graph.nodes, f"Node ({n}) is not a node in the graph"
+        self.graph.remove_node(n)
+        if n in self._sinks:
+            self._sinks.remove(n)
+        if n in self._sources:
+            self._sources.remove(n)
 
     def add_edge(self, src: N, dst: N) -> None:
         assert src != dst, "Cannot have self edges"
@@ -49,6 +57,21 @@ class VDGraph(object):
         else:
             self._sources.append(dst)
         self._sources.append(src)
+    
+    def remove_edge(self, src: N, dst: N) -> None:
+        assert src != dst, "Cannot have self edges"
+        assert (src, dst) in self.graph.edges, f"Edge ({src} -> {dst}) is not in the graph"
+        self.graph.remove_edge(src, dst)
+        if len(self.graph.out_edges(src)) == 0:
+            self.graph.remove_node(src)
+            self._sources.remove(src)
+        if len(self.graph.in_edges(dst)) == 0:
+            self.graph.remove_node(dst)
+            if dst in self._sinks:
+                self._sinks.remove(dst)
+            else:
+                self._sources.remove(dst)
+
 
     def _get_flows_to(self, dst: N) -> list[E]:
         return list(self.graph.in_edges(dst))
@@ -72,6 +95,16 @@ class VDGraph(object):
             return self._get_flows_from(src)
         else:
             return self._get_flows_between(src, dst)
+    
+    def iterate_paths(self) -> list[list[N]]:
+        roots = [x for x in self.graph.nodes if self.graph.in_degree(x) == 0]
+        leaves = [x for x in self.graph.nodes if self.graph.out_degree(x) == 0]
+        all_paths = []
+        for src in roots:
+            for dst in leaves:
+                all_paths.extend(all_simple_paths(self.graph, src, dst))
+
+        return all_paths
 
     def get_nodes(self, name: str, sink: bool = True) -> list[N]:
         nodes = []
