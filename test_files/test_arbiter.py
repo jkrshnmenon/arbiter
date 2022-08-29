@@ -14,9 +14,7 @@ class ArbiterTest(unittest.TestCase):
         dst = FirstArg('malloc')
         vd.add_edge(src, dst)
 
-        p = Arbiter(filename=Path(__file__ ).parent / 'simple_example', vd=vd)
+        p = Arbiter(filename=Path(__file__ ).parent / 'simple_example.elf', vd=vd)
         recon = Recon(p.storage)
-        sources, sinks = recon.analyze_all()
-        print(sources)
-        print(sinks)
+        recon.analyze_all()
 
