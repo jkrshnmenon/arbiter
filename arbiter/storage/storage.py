@@ -41,6 +41,3 @@ class Storage(object):
         if isinstance(thing, SinkFlow):
             self._add_sinkflow(thing)
 
-
-
-S = Type[Storage]
