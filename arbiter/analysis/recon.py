@@ -202,7 +202,4 @@ class Recon():
         
         self.identify_flows(marker_map)
 
-        for pp in self.storage.iter_sinks():
-            print(pp)
-
 
