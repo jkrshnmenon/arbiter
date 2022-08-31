@@ -110,14 +110,29 @@ class MetaNode(VDNode):
             self._outgoing[src] = []
         self._outgoing[src].append(dst)
 
-    def edge_targets(self, node: N, incoming: bool = True) -> list[N]:
+    def edge_targets(self, node: N, incoming: bool=True) -> list[N]:
         assert node in self._nodes
         if incoming is True:
-            assert node in self._incoming
+            if node not in self._incoming:
+                return []
             return self._incoming[node]
         else:
-            assert node in self._outgoing
+            if node not in self._outgoing:
+                return []
             return self._outgoing[node]
+    
+    def edge_sources(self, node: N, incoming: bool=True) -> list[N]:
+        sources: list[N] = []
+        if incoming is True:
+            for x in self._incoming:
+                if node in self._incoming[x]:
+                    sources.append(x)
+        else:
+            for x in self._outgoing:
+                if node in self._outgoing[x]:
+                    sources.append(x)
+        
+        return sources
     
 
 
