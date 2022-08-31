@@ -31,7 +31,7 @@ class VDGraph(object):
     def sources(self) -> list[N]:
         return list(set(self._sources))
     
-    def unify_nodes(self, *args: list[N]) -> None:
+    def unify_nodes(self, *args: list[N]) -> N:
         """Create meta node with nodes.
         Use this function when multiple args/return values of same sink/source is required
         """
@@ -54,13 +54,21 @@ class VDGraph(object):
         
         self.add_node(meta_node)
 
+        tmp = []
         for n in in_nodes:
             for src in set(in_nodes[n]):
+                if src in tmp:
+                    continue
+                tmp.append(src)
                 self.add_edge(src, meta_node)
                 meta_node.link_incoming(src, n)
 
+        tmp = []
         for n in out_nodes:
             for dst in set(out_nodes[n]):
+                if dst in tmp:
+                    continue
+                tmp.append(dst)
                 self.add_edge(meta_node, dst)
                 meta_node.link_outgoing(n, dst)
         
@@ -68,6 +76,8 @@ class VDGraph(object):
             meta_node.is_sink = True
         else:
             meta_node.is_source = True
+        
+        return meta_node
 
     def add_node(self, n: N) -> None:
         assert n not in self.graph.nodes, f"Node ({n}) is already a node in the graph"
