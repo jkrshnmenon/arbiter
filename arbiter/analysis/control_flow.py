@@ -160,9 +160,10 @@ class ControlFlow():
             assert isinstance(tmp, VDNode), f"Invalid object {tmp}"
             if isinstance(tmp, EOFNode):
                 # TODO: Find block with "ret" instruction
-                ret_block = None
-                markers.append(SinkMarker(tmp, ret_block, func))
-                continue
+                raise NotImplemented
+                # ret_block = None
+                # markers.append(SinkMarker(tmp, ret_block, func))
+                # continue
             for callee_name, call_block in callees:
                 if tmp.name in callee_name:
                     markers.append(SinkMarker(tmp, call_block, func))
