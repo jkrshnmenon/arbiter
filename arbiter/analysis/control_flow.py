@@ -9,7 +9,7 @@ from ..spec import *
 
 F = Type[angr.knowledge_plugins.functions.function.Function]
 
-class Recon():
+class ControlFlow():
     """
     A class to perform the first step of Arbiter analysis
     Static sink identification
