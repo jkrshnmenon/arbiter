@@ -1,3 +1,4 @@
+from pydoc import resolve
 from typing import Optional, Tuple, Type
 from networkx import DiGraph, all_simple_paths
 
@@ -37,17 +38,26 @@ class VDGraph(object):
         """
         meta_node = MetaNode(*args)
         in_nodes, out_nodes = {}, {}
+        resolved_in, resolved_out = {}, {}
         for n in args:
             assert n in self.graph.nodes, f"Node ({n}) is not a node in the graph"
 
             for src, _ in self.graph.in_edges(n):
                 if n not in in_nodes:
                     in_nodes[n] = []
+                if isinstance(src, MetaNode):
+                    if n not in resolved_in:
+                        resolved_in[n] = []
+                    resolved_in[n].extend(src.edge_sources(n, incoming=False))
                 in_nodes[n].append(src)
 
             for _, dst in self.graph.out_edges(n):
                 if n not in out_nodes:
                     out_nodes[n] = []
+                if isinstance(dst, MetaNode):
+                    if n not in resolved_out:
+                        resolved_out[n] = []
+                    resolved_out[n].extend(dst.edge_sources(n, incoming=True))
                 out_nodes[n].append(dst)
 
             self.remove_node(n)
