@@ -2,7 +2,7 @@ import unittest
 
 from pathlib import Path
 
-from arbiter import Recon
+from arbiter import ControlFlow
 from arbiter import Arbiter
 from arbiter import VDGraph
 from arbiter import FirstArg, ThirdArg, RetNode
@@ -15,8 +15,8 @@ class ArbiterTest(unittest.TestCase):
         vd.add_edge(src, dst)
 
         p = Arbiter(filename=Path(__file__ ).parent / 'build/single_func_data_flow.elf', vd=vd)
-        recon = Recon(p.storage)
-        recon.analyze_all()
+        control_flow = ControlFlow(p.storage)
+        control_flow.analyze_all()
 
         ctr = 0
         for pp in p.storage.iter_sinks():
@@ -35,8 +35,8 @@ class ArbiterTest(unittest.TestCase):
         vd.add_edge(src, dst)
 
         p = Arbiter(filename=Path(__file__ ).parent / 'build/multi_func_data_flow.elf', vd=vd)
-        recon = Recon(p.storage)
-        recon.analyze_all()
+        control_flow = ControlFlow(p.storage)
+        control_flow.analyze_all()
 
         ctr = 0
         for pp in p.storage.iter_sinks():
@@ -58,8 +58,8 @@ class ArbiterTest(unittest.TestCase):
         vd.add_edge(sz, sz_dst)
 
         p = Arbiter(filename=Path(__file__ ).parent / 'build/multi_data_flow.elf', vd=vd)
-        recon = Recon(p.storage)
-        recon.analyze_all()
+        control_flow = ControlFlow(p.storage)
+        control_flow.analyze_all()
 
         ctr = 0
         for pp in p.storage.iter_sinks():
