@@ -63,6 +63,8 @@ class ArbiterTest(unittest.TestCase):
         control_flow = ControlFlow(p.storage)
         control_flow.analyze_all()
 
+        p.storage.dbg_pp()
+
         ctr = 0
         for pp in p.storage.iter_sinks():
             # print(pp)
@@ -74,6 +76,6 @@ class ArbiterTest(unittest.TestCase):
         self.assertEqual(ctr, 1)
         self.assertEqual(malloc_meta.edge_targets(ptr, incoming=False), [ptr_dst])
         self.assertEqual(malloc_meta.edge_targets(sz, incoming=False), [sz_dst])
-        # self.assertEqual(memcpy_meta.edge_targets(ptr_dst, incoming=True), [ptr])
-        # self.assertEqual(memcpy_meta.edge_targets(sz_dst, incoming=True), [sz])
+        self.assertEqual(memcpy_meta.edge_targets(ptr_dst, incoming=True), [ptr])
+        self.assertEqual(memcpy_meta.edge_targets(sz_dst, incoming=True), [sz])
 
