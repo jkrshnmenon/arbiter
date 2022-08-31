@@ -68,6 +68,59 @@ N = Type[VDNode]
 
 
 
+class MetaNode(VDNode):
+    def __init__(self, *args: list[N]) -> None:
+        self._is_sink = None
+        self._is_source = None
+        self._incoming = {}
+        self._outgoing = {}
+        self._name = None
+        self._nodes: list[N] = []
+        for node in args:
+            assert isinstance(node, VDNode), f"{node} is not VDNode"
+            assert node not in self._nodes
+            if self._name is None:
+                self._name = node.name
+                self._nodes.append(node)
+                continue
+            else:
+                assert self._name == node.name, f"All nodes in MetaNode must be of same sink name: {self._name} != {node.name}"
+                self._nodes.append(node)
+    
+    def __str__(self) -> str:
+        output = "MetaNode(\n"
+        for x in self._nodes:
+            output += f"\t{x},\n"
+        output += ")\n"
+        return output
+    
+    @property
+    def name(self):
+        return self._name
+    
+    def link_incoming(self, src: N, dst: N) -> None:
+        assert src in self._nodes
+        if src not in self._incoming:
+            self._incoming[src] = []
+        self._incoming[src].append(dst)
+    
+    def link_outgoing(self, src: N, dst: N) -> None:
+        assert dst in self._nodes
+        if dst not in self._outgoing:
+            self._outgoing[dst] = []
+        self._outgoing[dst].append(src)
+
+    def edge_targets(self, node: N, incoming: bool = True) -> list[N]:
+        assert node in self._nodes
+        if incoming is True:
+            assert node in self._incoming
+            return self._incoming[node]
+        else:
+            assert node in self._outgoing
+            return self._outgoing[node]
+    
+
+
 class ConstNode(VDNode):
     def __init__(self, value: Union[float, int, bytes]) -> None:
         self.value = value
