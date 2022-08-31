@@ -99,16 +99,16 @@ class MetaNode(VDNode):
         return self._name
     
     def link_incoming(self, src: N, dst: N) -> None:
-        assert src in self._nodes
-        if src not in self._incoming:
-            self._incoming[src] = []
-        self._incoming[src].append(dst)
+        assert dst in self._nodes
+        if dst not in self._incoming:
+            self._incoming[dst] = []
+        self._incoming[dst].append(src)
     
     def link_outgoing(self, src: N, dst: N) -> None:
-        assert dst in self._nodes
-        if dst not in self._outgoing:
-            self._outgoing[dst] = []
-        self._outgoing[dst].append(src)
+        assert src in self._nodes
+        if src not in self._outgoing:
+            self._outgoing[src] = []
+        self._outgoing[src].append(dst)
 
     def edge_targets(self, node: N, incoming: bool = True) -> list[N]:
         assert node in self._nodes
