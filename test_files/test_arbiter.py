@@ -56,6 +56,8 @@ class ArbiterTest(unittest.TestCase):
         sz_dst = ThirdArg('memcpy')
         vd.add_edge(ptr, ptr_dst)
         vd.add_edge(sz, sz_dst)
+        vd.unify_nodes(ptr, sz)
+        vd.unify_nodes(ptr_dst, sz_dst)
 
         p = Arbiter(filename=Path(__file__ ).parent / 'build/multi_data_flow.elf', vd=vd)
         control_flow = ControlFlow(p.storage)
@@ -69,5 +71,5 @@ class ArbiterTest(unittest.TestCase):
             sm1, sm2 = pp.nodes
             self.assertEqual(sm1.function, sm2.function)
             self.assertNotEqual(sm1.block, sm2.block)
-        self.assertEqual(ctr, 2)
+        self.assertEqual(ctr, 1)
 
