@@ -56,8 +56,8 @@ class ArbiterTest(unittest.TestCase):
         sz_dst = ThirdArg('memcpy')
         vd.add_edge(ptr, ptr_dst)
         vd.add_edge(sz, sz_dst)
-        vd.unify_nodes(ptr, sz)
-        vd.unify_nodes(ptr_dst, sz_dst)
+        malloc_meta = vd.unify_nodes(ptr, sz)
+        memcpy_meta = vd.unify_nodes(ptr_dst, sz_dst)
 
         p = Arbiter(filename=Path(__file__ ).parent / 'build/multi_data_flow.elf', vd=vd)
         control_flow = ControlFlow(p.storage)
@@ -72,4 +72,8 @@ class ArbiterTest(unittest.TestCase):
             self.assertEqual(sm1.function, sm2.function)
             self.assertNotEqual(sm1.block, sm2.block)
         self.assertEqual(ctr, 1)
+        self.assertEqual(malloc_meta.edge_targets(ptr, incoming=False), [ptr_dst])
+        self.assertEqual(malloc_meta.edge_targets(sz, incoming=False), [sz_dst])
+        # self.assertEqual(memcpy_meta.edge_targets(ptr_dst, incoming=True), [ptr])
+        # self.assertEqual(memcpy_meta.edge_targets(sz_dst, incoming=True), [sz])
 
