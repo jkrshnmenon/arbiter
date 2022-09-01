@@ -71,6 +71,11 @@ class VDGraph(object):
                     continue
                 tmp.append(src)
                 self.add_edge(src, meta_node)
+                if not isinstance(src, MetaNode):
+                    meta_node.link_incoming(src, n)
+        
+        for n in resolved_in:
+            for src in set(resolved_in[n]):
                 meta_node.link_incoming(src, n)
 
         tmp = []
@@ -80,6 +85,11 @@ class VDGraph(object):
                     continue
                 tmp.append(dst)
                 self.add_edge(meta_node, dst)
+                if not isinstance(dst, MetaNode):
+                    meta_node.link_outgoing(n, dst)
+        
+        for n in resolved_out:
+            for dst in set(resolved_out[n]):
                 meta_node.link_outgoing(n, dst)
         
         if len(out_nodes) == 0:
