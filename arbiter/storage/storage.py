@@ -39,7 +39,7 @@ class Storage(object):
         for x in self._results:
             output += f"[*] RESULT <{x}>\n"
             for idx, y in enumerate(self._results[x]):
-                output += f"[{idx}] : {y}\n"
+                output += f"[{idx}] : \n{y}\n"
         prGreen(output)
         
 
