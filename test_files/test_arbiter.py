@@ -6,6 +6,7 @@ from arbiter import ControlFlow
 from arbiter import Arbiter
 from arbiter import VDGraph
 from arbiter import FirstArg, ThirdArg, RetNode
+from arbiter.storage import DataResolution, DataMarker
 
 class ArbiterTest(unittest.TestCase):
     def test_single_func_data_flow(self):
@@ -63,7 +64,7 @@ class ArbiterTest(unittest.TestCase):
         control_flow = ControlFlow(p.storage)
         control_flow.analyze_all()
 
-        p.storage.dbg_pp()
+        # p.storage.dbg_pp()
 
         ctr = 0
         for pp in p.storage.iter_sinks():
@@ -78,4 +79,19 @@ class ArbiterTest(unittest.TestCase):
         self.assertEqual(malloc_meta.edge_targets(sz, incoming=False), [sz_dst])
         self.assertEqual(memcpy_meta.edge_targets(ptr_dst, incoming=True), [ptr])
         self.assertEqual(memcpy_meta.edge_targets(sz_dst, incoming=True), [sz])
+    
+    def test_datamarker(self):
+        vd = VDGraph()
+        src = RetNode('strlen')
+        dst = FirstArg('malloc')
+        vd.add_edge(src, dst)
+
+        p = Arbiter(filename=Path(__file__ ).parent / 'build/single_func_data_flow.elf', vd=vd)
+        control_flow = ControlFlow(p.storage)
+        control_flow.analyze_all()
+
+        for pp in p.storage.iter_sinks():
+            self.assertEqual(len(pp.nodes), 2)
+            sm1, sm2 = pp.nodes
+            dm1, dm2 = DataMarker(sm1), DataMarker(sm2)
 
