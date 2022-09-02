@@ -94,4 +94,5 @@ class ArbiterTest(unittest.TestCase):
             self.assertEqual(len(pp.nodes), 2)
             sm1, sm2 = pp.nodes
             dm1, dm2 = DataMarker(sm1), DataMarker(sm2)
+            print(dm2)
 
