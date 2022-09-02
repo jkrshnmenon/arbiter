@@ -28,7 +28,7 @@ def resolve_data_marker(block, vd_node) -> dict:
 
     insn_addr: int = None
     insn = None
-    vex_id = None
+    vex_id: int = None
     vex_stmt = None
 
     if isinstance(vd_node, RetNode):
