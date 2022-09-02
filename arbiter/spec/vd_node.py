@@ -98,6 +98,10 @@ class MetaNode(VDNode):
     def name(self):
         return self._name
     
+    @property
+    def nodes(self):
+        return self._nodes
+    
     def link_incoming(self, src: N, dst: N) -> None:
         assert dst in self._nodes
         if dst not in self._incoming:
