@@ -76,16 +76,16 @@ class SinkFlow(Marker):
         return out
     
     @property
-    def nodes(self) -> list[Type[M]]:
+    def nodes(self) -> list[M]:
         return self.marker
 
     @property
-    def sinks(self) -> list:
-        return [x for x in self.marker if x.is_sink is True]
+    def sinks(self) -> list[M]:
+        return [x for x in self.marker if x.marker.is_sink is True]
 
     @property
-    def sources(self) -> list:
-        return [x for x in self.marker if x.is_source is True]
+    def sources(self) -> list[M]:
+        return [x for x in self.marker if x.marker.is_source is True]
 
 
 S = Type[SinkFlow]
