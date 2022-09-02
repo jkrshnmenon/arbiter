@@ -23,16 +23,20 @@ class DataResolution(object):
         assert not isinstance(node, MetaNode), "MetaNode not supported in DataResolution class"
         self._node = node
 
-        # self._resolution = {'insn_addr': None, 'insn': None, 'vex_idx': None, 'vex_stmt': None}
-        self._resolution = resolve_data_marker(block=self._block, vd_node=node)
+        self._resolution = {'insn_addr': 0, 'insn': None, 'vex_idx': 0, 'vex_stmt': None}
+    
+    def __str__(self) -> str:
+        out = f"DataResolution(\n\tnode={self._node},\n\tblock={hex(self._block.addr)},\n"
+        out += f"\t<{self.vex_stmt}> <= {self.insn.op_str} @ {hex(self.insn_addr)} : {self.vex_idx},\n)"
+        return out
     
     @property
     def insn(self):
         return self._resolution['insn']
     
     @property
-    def insn_idx(self):
-        return self._resolution['insn_idx']
+    def insn_addr(self):
+        return self._resolution['insn_addr']
     
     @property
     def vex_stmt(self):
@@ -41,6 +45,19 @@ class DataResolution(object):
     @property
     def vex_idx(self):
         return self._resolution['vex_idx']
+    
+    @property
+    def resolution(self) -> dict:
+        return self._resolution
+    
+    @resolution.setter
+    def resolution(self, value_dict) -> None:
+        assert all([True for x in ['insn', 'insn_addr', 'vex_stmt', 'vex_idx'] if x in value_dict])
+        assert isinstance(value_dict['insn_addr'], int)
+        assert isinstance(value_dict['stmt_idx'], int)
+        assert value_dict['insn'] is not None
+        assert value_dict['vex_stmt'] is not None
+        self._resolution = value_dict
 
 
 DR = Type[DataResolution]
@@ -65,6 +82,13 @@ class DataMarker():
         
         for x in self._data:
             self._data[x] = DataResolution(block=self.block, node=x)
+    
+    def __str__(self) -> str:
+        out = f"DataMarker(\n\tmarker={self._marker},\n"
+        for x in self.vd_nodes:
+            out += f"{self.resolved_marker(x)}\n"
+        out += ")\n"
+        return out
     
     @property
     def vd_nodes(self) -> list[N]:
