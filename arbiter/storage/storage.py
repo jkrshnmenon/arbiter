@@ -2,6 +2,7 @@ import angr
 from typing import Union, Type, Optional, Iterable
 
 from .control_flow_detection import *
+from .data_flow_detection import *
 from ..spec import V
 
 from ..utils import *
