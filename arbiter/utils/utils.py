@@ -1,34 +1,25 @@
-from optparse import Option
-from typing import Optional
 import angr
+from capstone.x86 import *
+from typing import Optional
+
 from ..spec import *
 
 def prGreen(skk): return f"\033[92m {skk}\033[00m"
 
-def prRed(skk): return "\033[91m {}\033[00m" .format(skk)
+def prRed(skk): return f"\033[91m {skk}\033[00m"
  
-def prYellow(skk): return "\033[93m {}\033[00m" .format(skk)
+def prYellow(skk): return f"\033[93m {skk}\033[00m"
  
-def prLightPurple(skk): return "\033[94m {}\033[00m" .format(skk)
+def prLightPurple(skk): return f"\033[94m {skk}\033[00m"
  
-def prPurple(skk): return "\033[95m {}\033[00m" .format(skk)
+def prPurple(skk): return f"\033[95m {skk}\033[00m"
  
-def prCyan(skk): return "\033[96m {}\033[00m" .format(skk)
+def prCyan(skk): return f"\033[96m {skk}\033[00m"
  
-def prLightGray(skk): return "\033[97m {}\033[00m" .format(skk)
+def prLightGray(skk): return f"\033[97m {skk}\033[00m"
  
-def prBlack(skk): return "\033[98m {}\033[00m" .format(skk)
+def prBlack(skk): return f"\033[98m {skk}\033[00m"
  
-
-def is_reg_write(stmt):
-    return stmt.tag == 'Ist_Put'
-
-def is_reg_read(stmt):
-    return stmt.tag == 'Iex_Get'
-
-def is_imark(stmt):
-    return stmt.tag == 'Ist_IMark'
-
 def stmt_addr(stmt):
     return stmt.addr
 
@@ -103,3 +94,95 @@ def resolve_data_marker(block, vd_node, function) -> dict:
             break
         
     return {'insn_addr': insn_addr, 'insn': insn, 'vex_idx': vex_id, 'vex_stmt': vex_stmt}
+
+def op_is_reg(self, op):
+    '''
+    Check whether the operand type is register or not
+    '''
+    if op.type == X86_OP_REG:
+        return True
+
+    return False
+
+
+def is_add32(self, stmt):
+    return stmt.tag == 'Iex_Binop' and stmt.op == 'Iop_Add32'
+
+def is_add(self, stmt):
+    return stmt.op == 'Iop_Add32' or stmt.op == 'Iop_Add64'
+
+def is_sub(self, stmt):
+    return stmt.op == 'Iop_Sub32' or stmt.op == 'Iop_Sub64'
+
+def is_mul(self, stmt):
+    return stmt.op == 'Iop_Mul32' or stmt.op == 'Iop_Mul64'
+
+def is_div(self, stmt):
+    return stmt.op == 'Iop_Div32' or stmt.op == 'Iop_Div64'
+
+def is_imark(self, stmt):
+    return stmt.tag == 'Ist_IMark'
+
+def is_ite(self, stmt):
+    return stmt.tag == 'Iex_ITE'
+
+def is_const(self, stmt):
+    return stmt.tag == 'Iex_Const'
+
+def is_reg_write(self, stmt):
+    return stmt.tag == 'Ist_Put'
+
+def is_reg_read(self, stmt):
+    return stmt.tag == 'Iex_Get'
+
+def is_tmp_write(self, stmt):
+    return stmt.tag == 'Ist_WrTmp'
+
+def is_tmp_read(self, stmt):
+    return stmt.tag == 'Iex_RdTmp'
+
+def is_tmp_unop(self, stmt):
+    return stmt.tag == 'Iex_Unop'
+
+def is_tmp_binop(self, stmt):
+    return stmt.tag == 'Iex_Binop'
+
+def is_arith(self, stmt):
+    return self.is_tmp_unop(stmt) or self.is_tmp_binop(stmt)
+
+def is_tmp_load(self, stmt):
+    return stmt.tag == 'Iex_Load'
+
+def is_tmp_store(self, stmt):
+    return stmt.tag == 'Ist_Store'
+
+def target_reg(self, stmt):
+    return stmt.offset
+
+def target_tmp(self, stmt):
+    return stmt.tmp
+
+def target_const(self, stmt):
+    return stmt.con.value
+
+def is_stack_var(self, variable):
+    return type(variable) == angr.sim_variable.SimStackVariable
+
+def store_in_stack(self, ins):
+    '''
+    Check if ins corresponds to `mov dword[esp+x], {r/imm}`
+    '''
+    if ins.insn.mnemonic != 'mov':
+        return False
+
+    if len(ins.insn.operands) < 1:
+        return False
+
+    first = ins.insn.operands[0]
+    if first.mem.base == X86_REG_ESP or first.mem.base == X86_REG_RSP:
+        return True
+
+    return False
+
+def disp(self, ins):
+    return ins.insn.disp
