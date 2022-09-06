@@ -94,5 +94,20 @@ class ArbiterTest(unittest.TestCase):
             self.assertEqual(len(pp.nodes), 2)
             sm1, sm2 = pp.nodes
             dm1, dm2 = DataMarker(sm1), DataMarker(sm2)
-            print(dm2)
+
+            # print(dm1)
+            # print(dm2)
+
+            self.assertEqual(len(dm1.vd_nodes), 1)
+            for node in dm1.vd_nodes:
+                resolution = dm1.resolved_marker(node)
+                self.assertEqual(resolution.insn_addr, 0x401185)
+                self.assertEqual(resolution.vex_idx, 3)
+            
+            self.assertEqual(len(dm2.vd_nodes), 1)
+            for node in dm2.vd_nodes:
+                resolution = dm2.resolved_marker(node)
+                self.assertEqual(resolution.insn_addr, 0x401190)
+                self.assertEqual(resolution.vex_idx, 16)
+
 
