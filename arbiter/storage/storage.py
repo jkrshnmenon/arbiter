@@ -41,7 +41,7 @@ class Storage(object):
             output += f"[*] RESULT <{x}>\n"
             for idx, y in enumerate(self._results[x]):
                 output += f"[{idx}] : \n{y}\n"
-        prGreen(output)
+        print(prGreen(output))
         
 
     def iter_sinks(self) -> Iterable[S]:

@@ -3,9 +3,22 @@ from typing import Optional
 import angr
 from ..spec import *
 
-def prGreen(skk): 
-    print(f"\033[92m {skk}\033[00m")
+def prGreen(skk): return f"\033[92m {skk}\033[00m"
 
+def prRed(skk): return "\033[91m {}\033[00m" .format(skk)
+ 
+def prYellow(skk): return "\033[93m {}\033[00m" .format(skk)
+ 
+def prLightPurple(skk): return "\033[94m {}\033[00m" .format(skk)
+ 
+def prPurple(skk): return "\033[95m {}\033[00m" .format(skk)
+ 
+def prCyan(skk): return "\033[96m {}\033[00m" .format(skk)
+ 
+def prLightGray(skk): return "\033[97m {}\033[00m" .format(skk)
+ 
+def prBlack(skk): return "\033[98m {}\033[00m" .format(skk)
+ 
 
 def is_reg_write(stmt):
     return stmt.tag == 'Ist_Put'
