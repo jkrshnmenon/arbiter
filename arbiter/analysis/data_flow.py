@@ -41,6 +41,20 @@ class DataFlow(object):
         
         return dataflow
     
+    def verify_data_flow(self, flow: S, marker_map: Dict[M, DM]) -> bool:
+        """Verify whether a data flow exists from the start to the end of the flow
+
+        Args:
+            flow (S): A SinkFlow object containing SinkMarkers
+            marker_map (Dict[M, DM]): A dictionary that maps SinkMarker objects to DataMarker objects
+
+        Returns:
+            bool: True if the data flow could be verified, False otherwise
+        """
+
+        # Iterate over each tuple of nodes in flow (backwards or forwards)
+        # Verify data flow using backends
+    
     def resolve_data_flow(self, flow: S):
         """Resolve a data flow backwards from sink to source
 
@@ -49,7 +63,10 @@ class DataFlow(object):
         """
         dataflow_map = {}
         dataflow_map.update(self.prep_data_flow(flow=flow))
-        sources, sinks = flow.sources, flow.sinks
+
+        if self.verify_data_flow(flow=flow, marker_map=dataflow_map):
+            df = DataFlow(flow)
+            self.storage.add_result(thing=df)
 
     
     def analyze_all(self):
