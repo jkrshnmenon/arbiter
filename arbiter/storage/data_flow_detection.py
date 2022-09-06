@@ -54,7 +54,7 @@ class DataResolution(object):
     def resolution(self, value_dict) -> None:
         assert all([True for x in ['insn', 'insn_addr', 'vex_stmt', 'vex_idx'] if x in value_dict])
         assert isinstance(value_dict['insn_addr'], int)
-        assert isinstance(value_dict['stmt_idx'], int)
+        assert isinstance(value_dict['vex_idx'], int)
         assert value_dict['insn'] is not None
         assert value_dict['vex_stmt'] is not None
         self._resolution = value_dict
@@ -82,6 +82,7 @@ class DataMarker():
         
         for x in self._data:
             self._data[x] = DataResolution(block=self.block, node=x)
+            self._data[x].resolution = resolve_data_marker(block=self.block, vd_node=x, function=self._marker.function)
     
     def __str__(self) -> str:
         out = f"DataMarker(\n\tmarker={self._marker},\n"
