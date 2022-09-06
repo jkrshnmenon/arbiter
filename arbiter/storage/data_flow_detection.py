@@ -27,7 +27,7 @@ class DataResolution(object):
     
     def __str__(self) -> str:
         out = f"DataResolution(\n\tnode={self._node},\n\tblock={hex(self._block.addr)},\n"
-        out += f"\t<{self.vex_stmt}> <= {self.insn.op_str} @ {hex(self.insn_addr)} : {self.vex_idx},\n)"
+        out += f"\t<{prGreen(self.vex_stmt)}> <= {prRed(self.insn)} : {prYellow(self.vex_idx)},\n)"
         return out
     
     @property
@@ -102,6 +102,14 @@ class DataMarker():
     @property
     def marker(self) -> M:
         return self._marker
+    
+    @property
+    def resolution(self):
+        if isinstance(self.marker, MetaNode):
+            return self._data
+        else:
+            assert len(self.vd_nodes) == 1
+            return self._data[self.vd_nodes[0]]
     
     def resolved_marker(self, vd_node: N) -> DR:
         assert vd_node in self._data
