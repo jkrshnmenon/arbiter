@@ -1,5 +1,5 @@
 import angr
-from typing import Type, Optional
+from typing import Type, List
 
 from ..utils import *
 from ..spec import VDNode
@@ -114,5 +114,33 @@ class DataMarker():
     def resolved_marker(self, vd_node: N) -> DR:
         assert vd_node in self._data
         return self._data[vd_node]
+
+
+
+DM = Type[DataMarker]
     
+
+
+class DataFlow():
+    def __init__(self, path: List[DM]):
+        self._marker = path
     
+    @property
+    def marker(self) -> M:
+        return self._marker
+    
+    def __str__(self) -> str:
+        out = ">>>>>>>>\n"
+        for node in self.marker:
+            out += "--------\n"
+            out += f"{str(node)}\n"
+        out += "--------\n"
+        out += "<<<<<<<<\n"
+        return out
+
+    @property
+    def nodes(self) -> list[M]:
+        return self.marker
+
+    
+DF = Type[DataFlow]    
