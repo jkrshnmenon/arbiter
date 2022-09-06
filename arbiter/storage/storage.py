@@ -50,8 +50,14 @@ class Storage(object):
 
     def _add_sinkflow(self, thing: S) -> None:
         self._results[SINK].append(thing)
+    
+    def _add_dataflow(self, thing: DF) -> None:
+        self._results[FLOW].append(thing)
 
     def add_result(self, thing: X) -> None :
         if isinstance(thing, SinkFlow):
             self._add_sinkflow(thing)
+        elif isinstance(thing, DataFlow):
+            self._add_dataflow(thing)
+        
 
