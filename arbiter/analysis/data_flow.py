@@ -27,15 +27,19 @@ class DataFlow(object):
     def vd(self):
         return self.storage.vd
     
-    def prep_data_flow(self, flow: S) -> None:
+    def prep_data_flow(self, flow: S) -> Dict[M, DM]:
         """Prepare all nodes in the data flow by creating DataMarkers
 
         Args:
             flow (S): A SinkFlow object
         """
+        dataflow = {}
         for sinkmarker in flow.nodes:
             assert isinstance(sinkmarker, VDNode)
             datamarker = DataMarker(sinkmarker)
+            dataflow[sinkmarker] = datamarker
+        
+        return dataflow
     
     def resolve_data_flow(self, flow: S):
         """Resolve a data flow backwards from sink to source
@@ -43,6 +47,8 @@ class DataFlow(object):
         Args:
             flow (S): A SinkFlow object
         """
+        dataflow_map = {}
+        dataflow_map.update(self.prep_data_flow(flow=flow))
         sources, sinks = flow.sources, flow.sinks
 
     
