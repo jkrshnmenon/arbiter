@@ -6,7 +6,7 @@
 char *multi_data_flow(char *input) {
 	int x = strlen(input);
 	char *p = (char *)malloc(x);
-    memcpy(p, input, x);
+	memcpy(p, input, x);
 	return p;
 }
 
