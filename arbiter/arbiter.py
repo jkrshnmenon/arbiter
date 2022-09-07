@@ -22,6 +22,9 @@ class Arbiter():
     def add_vd(self, vd: V):
         self.storage.vd = vd
 
+    def add_backend(self, backend: AnyStr):
+        self.storage.backend_name = backend
+
     def run_analysis():
         pass
 
