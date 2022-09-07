@@ -4,6 +4,22 @@ from typing import Optional
 
 from ..spec import *
 
+
+
+class FatalError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+class DataDependencyError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+class ConstantDataError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+
 def prGreen(skk): return f"\033[92m {skk}\033[00m"
 
 def prRed(skk): return f"\033[91m {skk}\033[00m"
