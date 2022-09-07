@@ -5,6 +5,7 @@ from typing import Type, List, Dict
 
 from ..storage import *
 from ..spec import *
+from backends import ArbiterBackend
 
 
 
@@ -18,6 +19,10 @@ class DataFlow(object):
             storage (S): The Arbiter Storage object
         """
         self.storage = storage
+        if self.storage.backend_name == 'Arbiter':
+            self.backend = ArbiterBackend(self.storage)
+        else:
+            raise NotImplementedError
     
     @property
     def cfg(self):
@@ -26,7 +31,7 @@ class DataFlow(object):
     @property
     def vd(self):
         return self.storage.vd
-    
+
     def prep_data_flow(self, flow: S) -> Dict[M, DM]:
         """Prepare all nodes in the data flow by creating DataMarkers
 
@@ -53,7 +58,44 @@ class DataFlow(object):
         """
 
         # Iterate over each tuple of nodes in flow (backwards or forwards)
-        # Verify data flow using backends
+        window = 2
+        for i in range(len(flow)-window+1):
+
+            src, dst = flow[i:i+window]
+
+            if isinstance(src, MetaNode):
+                edges = []
+                for child_node in src.nodes:
+                    for target_node in src.edge_targets(node=child_node, incoming=False):
+                        if isinstance(dst, MetaNode) and target_node in dst.nodes:
+                            edges.append([child_node, target_node])
+                        elif target_node == dst:
+                            edges.append([child_node, target_node])
+                assert len(edges) > 0
+                for edge in edges:
+                    if self.verify_data_flow(flow=edge, marker_map=marker_map) is False:
+                        return False
+                continue
+
+            elif isinstance(dst, MetaNode):
+                # We know that src is not a MetaNode
+                edges = []
+                for child_node in dst.nodes:
+                    for target_node in dst.edge_targets(node=child_node, incoming=True):
+                        assert not isinstance(src, MetaNode)
+                        if target_node == src:
+                            edges.append([target_node, child_node])
+                assert len(edges) > 0
+                for edge in edges:
+                    if self.verify_data_flow(flow=edge, marker_map=marker_map) is False:
+                        return False
+                continue
+
+            # No MetaNodes here
+            if self.backend.verify_edge_flow(src_node=marker_map[src], dst_node=marker_map[dst]) is False:
+                return False
+        
+        return True
     
     def resolve_data_flow(self, flow: S):
         """Resolve a data flow backwards from sink to source
