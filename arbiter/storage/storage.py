@@ -1,5 +1,5 @@
 import angr
-from typing import Union, Type, Optional, Iterable
+from typing import AnyStr, Union, Type, Optional, Iterable
 
 from .control_flow_detection import *
 from .data_flow_detection import *
@@ -20,13 +20,18 @@ REDUCE = 'reduce'
 
 
 class Storage(object):
-    def __init__(self, project: Optional[P] = None,
-                vd: Optional[V] = None, cfg : Optional[C] = None,
-                kb : Optional[K] = None) -> None :
+    def __init__(self,
+                project: Optional[P] = None,
+                vd: Optional[V] = None,
+                cfg : Optional[C] = None,
+                kb : Optional[K] = None,
+                backend: Optional[AnyStr] = None,
+                ) -> None :
         self.project = project
         self.vd = vd
         self.cfg = cfg
         self.kb = kb
+        self.backend_name = backend
         self._results = {}.fromkeys([SINK, FLOW, EXEC, REDUCE])
         for key in self._results:
             self._results[key] = []
