@@ -13,6 +13,11 @@ class ArbiterBackend():
         """Arbiter backend for data flow analysis
         """
         self.storage = storage
+        self.dst_func = None
+        self.dst_cfg = None
+        self.dst_ddg = None
+        self.dst_cdg = None
+        self.dst_bs = None
     
     @property
     def project(self):
@@ -21,6 +26,31 @@ class ArbiterBackend():
     @property
     def cfg(self):
         return self.storage.cfg
+
+    def block_idx(self, bbl):
+        return sorted(list(self.dst_func.block_addrs_set)).index(bbl)
+
+    def prev_block(self, bbl):
+        idx = self.block_idx(bbl)
+        return sorted(list(self.dst_func.block_addrs_set))[idx - 1]
+
+    def next_block(self, bbl):
+        idx = self.block_idx(bbl)
+        if len(self.dst_func.block_addrs_set) <= idx:
+            return None
+        return sorted(list(self.dst_func.block_addrs_set))[idx + 1]
+
+    def get_any_ddg_node(self, ddg, addr, idx):
+        dnode = None
+        for node in ddg.data_graph.nodes:
+            if node.location.block_addr == addr:
+                if node.location.stmt_idx == idx:
+                    dnode = node
+        return dnode
+
+    def stmt_from_ddg_node(self, dnode):
+        b = self.cfg.get_any_node(dnode.location.block_addr).block
+        return b.vex.statements[dnode.location.stmt_idx]
 
     def _is_bp_write(self, dst_node: DM, bbl: int, idx: int) -> bool:
         b = self.cfg.get_any_node(bbl).block
@@ -168,8 +198,8 @@ class ArbiterBackend():
         It happens when an argument is passed via the stack
         Or when you pass a pointer as an argument
         '''
-        b = target.cfg.get_any_node(cur_block).block
-        acfg = target._bs.annotated_cfg()
+        b = self.cfg.get_any_node(cur_block).block
+        acfg = self.dst_bs.annotated_cfg()
         whitelist = acfg.get_whitelisted_statements(cur_block)
         idx = None
         for x in whitelist:
@@ -216,8 +246,8 @@ class ArbiterBackend():
         It happens when an argument is passed via the stack
         Or when you pass a pointer as an argument
         '''
-        b = target.cfg.get_any_node(cur_block).block
-        acfg = target._bs.annotated_cfg()
+        b = self.cfg.get_any_node(cur_block).block
+        acfg = self.dst_bs.annotated_cfg()
         whitelist = acfg.get_whitelisted_statements(cur_block)
         idx = None
         for x in whitelist:
@@ -259,8 +289,8 @@ class ArbiterBackend():
 
     def _filter_preds(self, block, idx, target):
         rhs = block.vex.statements[idx].data
-        dnode = target.get_any_ddg_node(block.addr, idx)
-        preds = list(target.ddg.data_graph.predecessors(dnode))
+        dnode = self.get_any_ddg_node(self.dst_ddg, block.addr, idx)
+        preds = list(self.dst_ddg.data_graph.predecessors(dnode))
 
         if self.utils.is_reg_read(rhs):
             treg = self.utils.target_reg(rhs)
@@ -275,11 +305,14 @@ class ArbiterBackend():
                     # bbl. Change my mind.
                     name = sim_proc.location.sim_procedure.display_name
                     if type(target.source) == int:
+                        # Check if this simproc is mentioned in VD
+                        # If so, return its resolution
                         arg = self.utils.misc_src(name)
-                        prev = target.prev_block(block.addr)
-                        site = target.cfg.get_any_node(prev)
+                        prev = self.prev_block(block.addr)
+                        site = self.cfg.get_any_node(prev)
                         return prev, self.get_target_ins(site, arg)
                     else:
+                        # if this sim_proc is the source node, return
                         if name in target.source:
                             # Reached the return value of the checkpoint
                             return None, None
@@ -289,12 +322,14 @@ class ArbiterBackend():
                             except KeyError:
                                 raise DataDependencyError("Return value belongs to a different sim_proc")
 
-                            prev = target.prev_block(block.addr)
-                            site = target.cfg.get_any_node(prev)
+                            # Check if this simproc is mentioned in VD
+                            # If so, return its resolution
+                            prev = self.prev_block(block.addr)
+                            site = self.cfg.get_any_node(prev)
                             return prev, self.get_target_ins(site, arg)
 
             for node in preds:
-                stmt = target.stmt_from_ddg_node(node)
+                stmt = self.stmt_from_ddg_node(node)
                 taddr, tidx = node.location.block_addr, node.location.stmt_idx
                 if self.utils.is_reg_write(stmt) is False:
                     continue
@@ -309,7 +344,7 @@ class ArbiterBackend():
             flag = False
             retval = None
             for node in preds:
-                stmt = target.stmt_from_ddg_node(node)
+                stmt = self.stmt_from_ddg_node(node)
                 taddr, tidx = node.location.block_addr, node.location.stmt_idx
                 if self.utils.is_tmp_store(stmt):
                     flag = True
@@ -324,7 +359,7 @@ class ArbiterBackend():
                 if type(target.source) == int:
                     return retval
 
-                call_sites = [x for x in target.get_call_sites() if x < block.addr]
+                call_sites = [x for x in self.dst_func.get_call_sites() if x < block.addr]
                 callees = {x: self._callee_name(x) for x in call_sites}
 
                 matches = []
@@ -337,7 +372,7 @@ class ArbiterBackend():
             if flag is True:
                 # Couldn't find a correct store stmt
                 # Track the address of the store
-                acfg = target._bs.annotated_cfg()
+                acfg = self.dst_bs.annotated_cfg()
                 whitelist = acfg.get_whitelisted_statements(block.addr)
                 filtered = whitelist[:whitelist.index(idx)]
                 treg = self.utils.target_tmp(rhs.addr)
@@ -346,7 +381,7 @@ class ArbiterBackend():
         return None, None
 
     def _step_block(self, target, bbl, idx):
-        acfg = target._bs.annotated_cfg()
+        acfg = self.dst_bs.annotated_cfg()
         whitelist = acfg.get_whitelisted_statements(bbl)
         assert idx in whitelist
 
@@ -383,19 +418,19 @@ class ArbiterBackend():
         assert not isinstance(dst_node, MetaNode)
 
         dst_cfg_node = self.cfg.get_any_node(dst_node.block.addr)
-        dst_func = self.cfg.functions.floor_func(dst_node.block.addr)
+        self.dst_func = self.cfg.functions.floor_func(dst_node.block.addr)
         
-        if dst_func is None:
+        if self.dst_func is None:
             return False
 
         tmp_kb = angr.knowledge_base.KnowledgeBase(self.project, None)
-        dst_cfg = self.project.analyses.CFGEmulated(kb=tmp_kb,
+        self.dst_cfg = self.project.analyses.CFGEmulated(kb=tmp_kb,
                                                     keep_state=True,
-                                                    starts=[dst_func.addr],
+                                                    starts=[self.dst_func.addr],
                                                     state_add_options=refs,
                                                     call_depth=CALL_DEPTH)
-        dst_ddg = self.project.analyses.DDG(dst_cfg, start=dst_func.addr, call_depth=CALL_DEPTH)
-        dst_cdg= self.project.analyses.CDG(dst_cfg, start=dst_func.addr)
+        self.dst_ddg = self.project.analyses.DDG(self.dst_cfg, start=self.dst_func.addr, call_depth=CALL_DEPTH)
+        self.dst_cdg= self.project.analyses.CDG(self.dst_cfg, start=self.dst_func.addr)
         # src_cfg_node = self.cfg.functions.floor_func(src_node.block.addr)
         # src_func = self.cfg.functions.floor_func(src_node.block.addr)
 
@@ -406,17 +441,17 @@ class ArbiterBackend():
             # if node.callee == "EOF":
             if isinstance(dst_node, EOFNode):
                 raise NotImplemented
-                prev = target.prev_block(node.bbl)
-                while prev not in target.func.get_call_sites():
+                prev = self.prev_block(node.bbl)
+                while prev not in self.dst_func.get_call_sites():
                     # There should be a call site in this function
                     # So, this shouldn't result in an infinite loop
                     try:
-                        prev = target.prev_block(prev)
+                        prev = self.prev_block(prev)
                     except IndexError:
                         # raise DataDependencyError("No call sites found")
                         return False
 
-                if self._callee_name(target.func, prev) in target.source:
+                if self._callee_name(self.dst_func, prev) in target.source:
                     # 0 indicates that the source is the return value of some sim_proc
                     target._nodes[node.bbl].source = 0
                 else:
@@ -426,9 +461,9 @@ class ArbiterBackend():
                 # raise angr.AngrAnalysisError("Could not find target instruction")
                 return False
 
-        dst_bs = self.project.analyses.BackwardSlice(dst_cfg,
-                                                    cdg=dst_cdg,
-                                                    ddg=dst_ddg,
+        self.dst_bs = self.project.analyses.BackwardSlice(self.dst_cfg,
+                                                    cdg=self.dst_cdg,
+                                                    ddg=self.dst_ddg,
                                                     targets=[tslice])
 
         cur_block, cur_idx = tslice[0].addr, tslice[1]
