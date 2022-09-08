@@ -15,6 +15,9 @@ class VDNode(object):
         self.argument_registers = arch.argument_registers
         self.argument_register_positions = arch.argument_register_positions
         self.ret_offset = arch.ret_offset
+        self.sp_offset = arch.sp_offset
+        self.bits = arch.bits
+        self.offset_getter = arch.get_register_offset
 
         #
         # The following code is to fix a line of code in angr
@@ -62,6 +65,9 @@ class VDNode(object):
     def is_source(self, flag: bool):
         self._is_source = flag
         self._is_sink = not flag
+    
+    def get_register_offset(self, name):
+        return self.offset_getter(name=name)
 
 
 N = Type[VDNode]
