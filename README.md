@@ -33,6 +33,12 @@ If you use Arbiter in a scientific publication, we would appreciate citations us
 ```
 
 
+[Paper](https://jkrshnmenon.github.io/assets/pdf/arbiter_paper.pdf)
+
+
+[Slides](https://jkrshnmenon.github.io/assets/pdf/arbiter_slides.pdf)
+
+
 # Installation
 
 `python setup.py build && python setup.py install`
