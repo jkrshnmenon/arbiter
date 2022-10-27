@@ -45,7 +45,7 @@ def main(template, target):
     sink_map = template.specify_sinks()
     sa = SA_Recon(project, sinks=sink_map.keys(), maps=sink_map, json_dir=JSON_DIR)
     if IDENTIFIER is None:
-        sa.analyze()
+        sa.analyze(ignore_funcs=BLACKLIST)
     else:
         sa.analyze_one(IDENTIFIER)
 
