@@ -143,8 +143,11 @@ class SA_Recon(StaticAnalysis):
             logger.error(e)
             return
 
-    def analyze(self):
+    def analyze(self, ignore_funcs=[]):
         for addr, func in tqdm(self._cfg.functions.items(), desc="Identifying functions"):
+            if len(ignore_funcs) > 0:
+                if addr in ignore_funcs or func.name in ignore_funcs:
+                    continue
             logger.info("Starting recon of 0x%x" % addr)
             try:
                 if self._check_sinks(func) is True:

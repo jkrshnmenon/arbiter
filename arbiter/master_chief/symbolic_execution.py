@@ -339,6 +339,11 @@ class SymExec(StaticAnalysis, DerefHook):
             t.join(timeout=1)
             logger.debug("Got an exception")
             logger.error(e)
+        except:
+            logger.debug("Got an exception")
+            self._watchdog_event.set()
+            logger.debug("Waiting for watchdog to join")
+            t.join(timeout=1)
 
         end = time.time()
         logger.debug("Found %d paths" % len(pg.found))
