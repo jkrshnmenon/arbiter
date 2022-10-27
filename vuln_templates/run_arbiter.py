@@ -65,7 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', metavar='VD', type=str, help='The VD template to use', required=True)
     parser.add_argument('-t', metavar='TARGET', type=str, help='The target binary to analyze', required=True)
     parser.add_argument('-i', metavar='ADDR', type=str, help='Specify a target function identifier (name|addr) to focus the analysis on', required=False, default="")
-    parser.add_argument('-b', metavar='BLACKLIST', type=str, help='Specify a list of function identifiers (name|addr) to skip analysis', required=False, default=[], nargs="?")
+    parser.add_argument('-b', metavar='BLACKLIST', type=str, help='Specify a list of function identifiers (name|addr) to skip analysis', required=False, default=[], nargs="+")
     parser.add_argument('-r', metavar='LEVEL', type=int, help='Number of levels for Adaptive False Positive Reduction', required=False, default=-1)
     parser.add_argument('-l', metavar='LOG_DIR', type=str, help='Enable logging to LOG_DIR', required=False)
     parser.add_argument('-j', metavar='JSON_DIR', type=str, help='Enable verbose statistics dumps to JSON_DIR', required=False)
